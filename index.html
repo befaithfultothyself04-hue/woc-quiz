@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOC認定看護師 入試対策クイズ</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; -webkit-text-size-adjust: 100%; }
+  /* スマホタップ最適化 */
+  button, .chip { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  input, select { font-size: 16px; } /* iOSズーム防止 */
+
+  /* ヘッダー */
+  .header { background: linear-gradient(135deg, #2b6cb0, #2c5282); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .header h1 { font-size: 16px; font-weight: 700; }
+  .header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+  /* タブナビ */
+  .tab-nav { display: flex; background: white; border-bottom: 2px solid #e2e8f0; position: sticky; top: 64px; z-index: 99; }
+  .tab-btn { flex: 1; padding: 13px 4px; font-size: 13px; font-weight: 600; color: #718096; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; min-height: 50px; }
+  .tab-btn.active { color: #2b6cb0; border-bottom-color: #2b6cb0; }
+
+  /* メインコンテンツ */
+  .screen { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+
+  /* ホーム画面 */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .stat-number { font-size: 32px; font-weight: 800; color: #2b6cb0; }
+  .stat-label { font-size: 12px; color: #718096; margin-top: 4px; }
+
+  .filter-section { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .filter-section h3 { font-size: 14px; font-weight: 700; color: #4a5568; margin-bottom: 12px; }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 8px 16px; border-radius: 20px; border: 2px solid #e2e8f0; font-size: 14px; cursor: pointer; transition: all 0.2s; background: white; color: #4a5568; min-height: 40px; display: inline-flex; align-items: center; }
+  .chip.selected { background: #2b6cb0; border-color: #2b6cb0; color: white; }
+
+  .start-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #38a169, #2f855a); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(56,161,105,0.4); transition: transform 0.1s; }
+  .start-btn:active { transform: scale(0.98); }
+
+  /* クイズ画面 */
+  .progress-bar-wrap { background: #e2e8f0; border-radius: 99px; height: 6px; margin-bottom: 16px; }
+  .progress-bar { background: linear-gradient(90deg, #2b6cb0, #63b3ed); height: 6px; border-radius: 99px; transition: width 0.3s; }
+  .quiz-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .quiz-counter { font-size: 13px; color: #718096; font-weight: 600; }
+  .quiz-school { font-size: 11px; background: #ebf8ff; color: #2b6cb0; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .quiz-topic { font-size: 11px; background: #f0fff4; color: #276749; padding: 3px 10px; border-radius: 20px; font-weight: 600; margin-left: 4px; }
+
+  .case-box { background: #fffbeb; border-left: 4px solid #f6ad55; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.7; color: #744210; }
+  .case-box strong { display: block; font-size: 12px; color: #c05621; margin-bottom: 6px; }
+
+  .question-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .question-text { font-size: 15px; line-height: 1.8; font-weight: 600; white-space: pre-line; }
+
+  .options-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .option-btn { text-align: left; padding: 14px 16px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-size: 14px; line-height: 1.6; cursor: pointer; transition: all 0.15s; color: #2d3748; }
+  .option-btn:hover:not(:disabled) { border-color: #63b3ed; background: #ebf8ff; }
+  .option-btn.correct { border-color: #38a169; background: #f0fff4; color: #276749; font-weight: 700; }
+  .option-btn.wrong { border-color: #e53e3e; background: #fff5f5; color: #c53030; }
+  .option-btn:disabled { cursor: default; }
+
+  .explanation-box { background: #f7fafc; border-left: 4px solid #4299e1; border-radius: 8px; padding: 14px; margin-top: 12px; font-size: 13px; line-height: 1.8; color: #2d3748; display: none; }
+  .explanation-box.show { display: block; }
+  .explanation-box strong { color: #2b6cb0; font-size: 12px; display: block; margin-bottom: 4px; }
+
+  .action-row { display: flex; gap: 10px; margin-top: 16px; }
+  .next-btn { flex: 1; padding: 14px; background: #2b6cb0; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; display: none; }
+  .next-btn.show { display: block; }
+  .bookmark-btn { padding: 14px 18px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 20px; cursor: pointer; }
+  .bookmark-btn.active { border-color: #f6ad55; background: #fffbeb; }
+
+  /* 結果画面 */
+  .result-card { background: white; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .score-circle { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; }
+  .score-circle.great { background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; }
+  .score-circle.good { background: linear-gradient(135deg, #63b3ed, #3182ce); color: white; }
+  .score-circle.ok { background: linear-gradient(135deg, #68d391, #38a169); color: white; }
+  .score-pct { font-size: 40px; line-height: 1; }
+  .score-sub { font-size: 14px; opacity: 0.9; }
+  .result-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+  .breakdown-item { background: #f7fafc; border-radius: 8px; padding: 10px; text-align: center; }
+  .breakdown-num { font-size: 22px; font-weight: 800; }
+  .breakdown-num.correct { color: #38a169; }
+  .breakdown-num.wrong { color: #e53e3e; }
+  .breakdown-num.bookmark { color: #d69e2e; }
+  .breakdown-label { font-size: 11px; color: #718096; margin-top: 2px; }
+
+  .topic-results { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .topic-results h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #4a5568; }
+  .topic-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .topic-row:last-child { border-bottom: none; }
+  .topic-bar-wrap { flex: 1; margin: 0 12px; height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+  .topic-bar { height: 100%; border-radius: 99px; }
+
+  .retry-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .home-btn { width: 100%; padding: 14px; background: white; border: 2px solid #e2e8f0; color: #4a5568; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  /* 途中再開カード */
+  .resume-card { background: linear-gradient(135deg, #ebf8ff, #bee3f8); border: 2px solid #90cdf4; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+  .resume-card h3 { font-size: 14px; font-weight: 700; color: #2b6cb0; margin-bottom: 6px; }
+  .resume-card p { font-size: 13px; color: #2c5282; margin-bottom: 12px; }
+  .resume-card .resume-btns { display: flex; gap: 8px; }
+  .resume-btn { flex: 1; padding: 10px; background: #2b6cb0; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+  .resume-discard-btn { padding: 10px 14px; background: white; border: 2px solid #bee3f8; color: #4a5568; border-radius: 10px; font-size: 13px; cursor: pointer; touch-action: manipulation; }
+
+  /* ブックマーク一覧 */
+  .bookmark-list { display: flex; flex-direction: column; gap: 12px; }
+  .bookmark-item { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #f6ad55; }
+  .bookmark-item-meta { font-size: 11px; color: #718096; margin-bottom: 6px; }
+  .bookmark-item-q { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* 統計画面 */
+  .analysis-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 12px; }
+  .analysis-card h3 { font-size: 14px; font-weight: 700; color: #4a5568; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏥 WOC認定看護師 入試対策クイズ</h1>
+  <p>皮膚・排泄ケア認定看護師教育課程</p>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('home', this)">🏠 ホーム</button>
+  <button class="tab-btn" onclick="showTab('quiz', this)">📝 クイズ</button>
+  <button class="tab-btn" onclick="showTab('bookmark', this)">⭐ 復習</button>
+  <button class="tab-btn" onclick="showTab('stats', this)">📊 分析</button>
+</div>
+
+<!-- ホーム画面 -->
+<div class="screen" id="screen-home" style="display:block">
+  <div style="height:16px"></div>
+
+  <!-- 途中再開カード -->
+  <div class="resume-card" id="resume-card" style="display:none">
+    <h3>⏸ 前回の続きがあります</h3>
+    <p id="resume-info">読み込み中...</p>
+    <div class="resume-btns">
+      <button class="resume-btn" onclick="resumeQuiz()">続きから再開する ▶</button>
+      <button class="resume-discard-btn" onclick="clearResume()">破棄</button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="stat-total">0</div>
+      <div class="stat-label">総問題数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-done">0</div>
+      <div class="stat-label">解答済み</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-correct" style="color:#38a169">0</div>
+      <div class="stat-label">正解数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-accuracy" style="color:#d69e2e">-%</div>
+      <div class="stat-label">正答率</div>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <h3>📚 出題範囲を選ぶ</h3>
+    <div class="filter-chips" id="school-filters">
+      <span class="chip selected" data-filter="all" onclick="setFilter(this,'school')">すべて</span>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <h3>🔖 テーマで絞る</h3>
+    <div class="filter-chips" id="topic-filters">
+      <span class="chip selected" data-topic="all" onclick="setFilter(this,'topic')">すべて</span>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <h3>⚙️ 出題順</h3>
+    <div class="filter-chips">
+      <span class="chip selected" data-mode="order" onclick="setMode(this,'mode')">順番通り</span>
+      <span class="chip" data-mode="random" onclick="setMode(this,'mode')">ランダム</span>
+      <span class="chip" data-mode="wrong" onclick="setMode(this,'mode')">間違えた問題のみ</span>
+      <span class="chip" data-mode="bookmark" onclick="setMode(this,'mode')">ブックマークのみ</span>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startQuiz()">クイズを開始する ▶</button>
+</div>
+
+<!-- クイズ画面 -->
+<div class="screen" id="screen-quiz">
+  <div style="height:16px"></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+  </div>
+  <div class="quiz-meta">
+    <span class="quiz-counter" id="quiz-counter">1 / 10</span>
+    <span>
+      <span class="quiz-school" id="quiz-school">清瀬2025</span>
+      <span class="quiz-topic" id="quiz-topic">皮膚解剖</span>
+    </span>
+  </div>
+  <div class="case-box" id="case-box" style="display:none">
+    <strong id="case-name"></strong>
+    <span id="case-text"></span>
+  </div>
+  <div class="question-card">
+    <p class="question-text" id="question-text"></p>
+    <div class="options-list" id="options-list"></div>
+    <div class="explanation-box" id="explanation-box">
+      <strong>💡 解説</strong>
+      <span id="explanation-text"></span>
+    </div>
+  </div>
+  <div class="action-row">
+    <button class="bookmark-btn" id="bookmark-btn" onclick="toggleBookmark()">☆</button>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題 →</button>
+  </div>
+</div>
+
+<!-- 結果画面 -->
+<div class="screen" id="screen-result">
+  <div style="height:16px"></div>
+  <div class="result-card">
+    <div class="score-circle great" id="score-circle">
+      <div class="score-pct" id="score-pct">80%</div>
+      <div class="score-sub" id="score-sub">8/10問</div>
+    </div>
+    <h2 id="score-message" style="font-size:18px;margin-bottom:8px">お疲れ様でした！</h2>
+    <p id="score-comment" style="font-size:13px;color:#718096;line-height:1.6"></p>
+    <div class="result-breakdown">
+      <div class="breakdown-item">
+        <div class="breakdown-num correct" id="res-correct">8</div>
+        <div class="breakdown-label">正解</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-num wrong" id="res-wrong">2</div>
+        <div class="breakdown-label">不正解</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-num bookmark" id="res-bookmark">0</div>
+        <div class="breakdown-label">ブックマーク</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="topic-results" id="topic-results-section">
+    <h3>📊 テーマ別正答率</h3>
+    <div id="topic-results-list"></div>
+  </div>
+
+  <button class="retry-btn" onclick="retryWrong()">❌ 間違えた問題を復習する</button>
+  <button class="home-btn" onclick="goHome()">🏠 ホームに戻る</button>
+</div>
+
+<!-- ブックマーク画面 -->
+<div class="screen" id="screen-bookmark">
+  <div style="height:16px"></div>
+  <div class="bookmark-list" id="bookmark-list">
+    <div class="empty-state">
+      <div class="icon">⭐</div>
+      <p>ブックマークした問題がここに表示されます</p>
+    </div>
+  </div>
+</div>
+
+<!-- 分析画面 -->
+<div class="screen" id="screen-stats">
+  <div style="height:16px"></div>
+  <div class="analysis-card">
+    <h3>📚 学校別 問題数</h3>
+    <div id="school-stats-list"></div>
+  </div>
+  <div class="analysis-card">
+    <h3>🎯 テーマ別 正答率</h3>
+    <div id="topic-stats-list"></div>
+  </div>
+  <div class="analysis-card">
+    <h3>💡 苦手テーマ TOP3</h3>
+    <div id="weak-topics-list"></div>
+  </div>
+</div>
+
+<script>
+// ===== 問題データ =====
+const questions = [
+  { id:1, school:"清瀬2025", year:2025, topic:"皮膚解剖", question:"問題1｜表皮の解剖について上層側からの順番として正しいものはどれか。", options:["1. 角質層 → 基底層 → 顆粒層 → 有棘層","2. 角質層 → 顆粒層 → 有棘層 → 基底層","3. 角質層 → 有棘層 → 基底層 → 顆粒層","4. 角質層 → 有棘層 → 顆粒層 → 基底層"], answer:1, explanation:"表皮は上層から「角質層→顆粒層→有棘層→基底層」。基底層で細胞が産生され、上層へ移動しながら角化が進む。" },
+  { id:2, school:"清瀬2025", year:2025, topic:"皮膚解剖", question:"問題2｜皮膚の付属器について誤っているものはどれか。\na．汗腺からは皮脂が分泌される。\nb．毛脂腺は腋窩に多く分布している。\nc．エクリン腺は全身の皮膚に分布している。\nd．アポクリン腺は体温調節に関与している。", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"a誤：汗腺からは汗が分泌（皮脂は皮脂腺）。d誤：体温調節はエクリン腺。アポクリン腺は体臭に関係。" },
+  { id:3, school:"清瀬2025", year:2025, topic:"皮膚病態", question:"問題3｜皮膚の病態として正しいものはどれか。\na. 水疱とは膿が貯留した隆起病変である。\nb. びらんとは表皮の欠損である。\nc. 紫斑は硝子圧法（ガラス圧迫法）で消失しない。\nd. 紅斑とは真皮の出血により紅色となることを示す。", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:2, explanation:"b正：びらんは表皮のみの欠損。c正：紫斑は出血のため硝子圧法で消失しない。a誤：水疱は漿液貯留（膿は膿疱）。d誤：紅斑は血管拡張による発赤。" },
+  { id:4, school:"清瀬2025", year:2025, topic:"皮膚感染", question:"問題4｜蜂窩織炎の病態について誤っているものはどれか。", options:["1. 熱感を伴わない。","2. 四肢に多く見られる。","3. 壊死性筋膜炎に移行することがある。","4. 原因菌の1つに黄色ブドウ球菌がある。"], answer:0, explanation:"蜂窩織炎は炎症の4徴（発赤・腫脹・熱感・疼痛）を伴う。熱感を伴わないは誤り。" },
+  { id:5, school:"清瀬2025", year:2025, topic:"褥瘡", question:"問題5｜ブレーデンスケールの評価項目について誤っているものはどれか。", options:["1. 知覚の認知","2. 活動性","3. 病的骨突出","4. 摩擦とずれ"], answer:2, explanation:"ブレーデンスケール6項目：知覚の認知・湿潤・活動性・可動性・栄養状態・摩擦とずれ。「病的骨突出」はOHスケールの項目。" },
+  { id:6, school:"清瀬2025", year:2025, topic:"褥瘡・MDRPU", question:"問題6｜弾性ストッキングによるMDRPU予防ケアについて正しいものはどれか。\na．皮膚の観察は1日2回以上行う。\nb．後脛骨動脈の触知を確認する。\nc．創傷被覆材の使用は保険適応となる。\nd．弾性ストッキングの着脱は最低限にする。", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:0, explanation:"a正：1日2回以上の皮膚観察。b正：血流確認のため後脛骨動脈触知。c誤：MDRPU予防の被覆材は保険適応外。d誤：着脱して皮膚観察が重要。" },
+  { id:7, school:"清瀬2025", year:2025, topic:"スキン-テア", question:"問題7｜STARスキン-テア分類システムについて誤っているものはどれか。\na．カテゴリー1aは創縁を正常な位置に戻すことができない状態。\nb．カテゴリー2bは皮弁の色が黒ずんでいる状態。\nc．カテゴリー3は皮弁が完全に欠損した状態。\nd．カテゴリー4は皮下組織に損傷が及んだ状態。", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"a誤：1aは皮弁を元の位置に戻せる状態。d誤：STARは1a・1b・2a・2b・3の5カテゴリーで、4は存在しない。" },
+  { id:8, school:"清瀬2025", year:2025, topic:"創傷管理", question:"問題9｜Wound hygieneの4つのステップで正しい順番はどれか。", options:["1. 洗浄 → 創縁の新鮮化 → 創傷の被覆 → 保湿","2. デブリードマン → 消毒 → 洗浄 → 創傷の被覆","3. 洗浄 → デブリードマン → 創縁の新鮮化 → 創傷の被覆","4. 消毒 → デブリードマン → 創傷の被覆 → 保護"], answer:2, explanation:"Wound hygiene 4ステップ：洗浄→デブリードマン→創縁の新鮮化→創傷の被覆。消毒は行わない。" },
+  { id:9, school:"清瀬2025", year:2025, topic:"創傷被覆材", question:"問題10｜創傷被覆剤の特徴として正しいものはどれか。\na．ハイドロファイバー ― 止血効果\nb．ハイドロジェル ― 滲出液によってゲル化\nc．ポリウレタンフォーム ― 滲出液があと戻りしない\nd．ハイドロコロイド ― 親水性ポリマーを含有", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"c正：PUフォームは逆流防止。d正：ハイドロコロイドは親水性ポリマー含有。a誤：止血効果はアルギン酸塩。b誤：ハイドロジェルは水分補給用。" },
+  { id:10, school:"清瀬2025", year:2025, topic:"創傷管理", question:"問題11｜局所陰圧閉鎖療法について誤っているものはどれか。", options:["1. 創傷治癒促進のための化学的療法である。","2. 悪性腫瘍がある創傷は禁忌である。","3. 血管新生の促進効果がある。","4. 在宅での保険算定が可能である。"], answer:0, explanation:"NPWTは陰圧（物理的刺激）を用いた物理的療法。化学的療法ではない。" },
+  { id:11, school:"清瀬2025", year:2025, topic:"消化管解剖", question:"問題12｜上腸管膜動脈の支配ではないものはどれか。\na. 回腸　b. 横行結腸　c. 下行結腸　d. 直腸", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"上腸管膜動脈は小腸〜横行結腸を支配。下行結腸・直腸は下腸管膜動脈の支配。" },
+  { id:12, school:"清瀬2025", year:2025, topic:"消化管・腫瘍", question:"問題13｜大腸癌からの転移のうち血行性転移ではないものはどれか。", options:["1. 骨","2. 脳","3. 肝臓","4. 腹膜"], answer:3, explanation:"腹膜転移は播種性転移（腹腔内への直接散布）。骨・脳・肺・肝臓は血行性転移。" },
+  { id:13, school:"清瀬2025", year:2025, topic:"ストーマ・解剖", question:"問題14｜直腸癌手術に関連した自律神経の組み合わせで誤っているものはどれか。", options:["1. 腰内臓神経 ― 交感神経","2. 上下腹神経叢 ― 交感神経","3. 骨盤内臓神経 ― 副交感神経","4. 下腹神経 ― 副交感神経"], answer:3, explanation:"下腹神経は交感神経（腰内臓神経から続く）。骨盤内臓神経（S2〜S4）が副交感神経。" },
+  { id:14, school:"清瀬2025", year:2025, topic:"泌尿器", question:"問題15｜膀胱癌について誤っているものはどれか。", options:["1. 男女比では男性が多い。","2. 尿路上皮癌が多い。","3. TNM分類のT1は筋層に浸潤を示す。","4. 初発症状に無症候性肉眼的血尿がみられる。"], answer:2, explanation:"T1は粘膜下層への浸潤。筋層浸潤はT2。" },
+  { id:15, school:"清瀬2025", year:2025, topic:"ストーマ", question:"問題16｜ストーマ造設の術式で誤っているものはどれか。", options:["1. ハルトマン術","2. 回腸導管造設術","3. 低位前方切除術","4. 腹会陰式直腸切断術"], answer:2, explanation:"低位前方切除術は肛門温存術式（永久ストーマを造設しない）。" },
+  { id:16, school:"清瀬2025", year:2025, topic:"ストーマ・制度", question:"問題17｜ストーマに関する診療報酬で誤っているものはどれか。", options:["1. ストーマ合併症加算は65点算定できる。","2. ストーマ処置料はストーマ2個の場合は140点算定できる。","3. 在宅療養指導料は初めて指導を行った月は2回算定できる。","4. 人工肛門・人工膀胱造設術前処置加算は450点算定できる。"], answer:1, explanation:"ストーマ処置料：1個70点、2個以上100点（140点ではない）。" },
+  { id:17, school:"清瀬2025", year:2025, topic:"炎症性腸疾患", question:"問題18｜炎症性腸疾患について誤っているものはどれか。", options:["1. クローン病 ― 肛門病変の併発が多い","2. クローン病 ― 全消化管に病変を生じる","3. 潰瘍性大腸炎 ― 粘血便の発現頻度が高い","4. 潰瘍性大腸炎 ― 内視鏡所見で敷石像病変を呈する"], answer:3, explanation:"敷石像はクローン病の内視鏡所見。潰瘍性大腸炎は連続性粘膜障害が特徴。" },
+  { id:18, school:"清瀬2025", year:2025, topic:"ストーマ装具", question:"問題19｜面板のストーマ孔で誤っているものはどれか。", options:["1. 無孔","2. 既成孔","3. 自在孔","4. 自由開孔"], answer:3, explanation:"ストーマ孔の種類は無孔・既成孔・自在孔の3種類。「自由開孔」は存在しない。" },
+  { id:19, school:"清瀬2025", year:2025, topic:"ストーマ・心理", question:"問題20｜危機モデルの組み合わせで誤っているものはどれか。", options:["1. ベナー ― 危機問題解決過程モデル","2. コーン ― 障害受容のプロセスモデル","3. カプラン ― 危機状況から精神障害に向かうプロセスモデル","4. フィンク ― 危機から適応へと向かう障害受容のプロセスモデル"], answer:0, explanation:"ベナーは看護師の熟達理論（ノービス→エキスパート）。危機問題解決過程モデルとは関係ない。" },
+  { id:20, school:"清瀬2025", year:2025, topic:"ストーマ合併症", question:"問題21｜ストーマの晩期合併症で誤っているものはどれか。\na. ストーマ壊死　b. ストーマ周囲肉芽腫　c. ストーマ傍ヘルニア　d. ストーマ粘膜皮膚離開", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"ストーマ壊死・粘膜皮膚離開は術後早期合併症。晩期：傍ヘルニア・脱出・狭窄・周囲肉芽腫など。" },
+  { id:21, school:"清瀬2025", year:2025, topic:"尿路ストーマ", question:"問題22｜尿路ストーマのケアについて正しいものはどれか。\na. 術直後は尿管カテーテルからの尿流出確認。\nb. 腎瘻はカテーテルをキャップで止めて入浴。\nc. 偽上皮腫性肥厚は面板ストーマ孔を大きくカット。\nd. 洗浄はストーマ近接部から外周へすすめる。", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"a正：術後は尿流出確認が重要。d正：洗浄は近接部→外側へ。b誤：腎瘻患者はカテーテルを止めてはいけない。c誤：偽上皮腫性肥厚は孔を小さくする。" },
+  { id:22, school:"清瀬2025", year:2025, topic:"尿路ストーマ", question:"問題23｜ストーマ静脈瘤について誤っているものはどれか。", options:["1. 治療方法に硬化療法がある。","2. 右側結腸ストーマに生じやすい。","3. 門脈圧亢進症のある患者に起こりやすい。","4. 硝子板圧迫で発赤が消退する。"], answer:1, explanation:"ストーマ静脈瘤は左側結腸ストーマに多い（門脈-体静脈短絡が形成されやすい）。" },
+  { id:23, school:"清瀬2025", year:2025, topic:"泌尿器解剖", question:"問題24｜腎臓の解剖生理について誤っているものはどれか。", options:["1. 右腎は左腎より高い位置にある。","2. 腎門部には神経が出入りしている。","3. 成人の1日の糸球体濾過量は約150Lである。","4. ひとつの腎臓には約100万個のネフロンが存在する。"], answer:0, explanation:"右腎は肝臓により圧迫されるため、左腎より低い位置にある。" },
+  { id:24, school:"清瀬2025", year:2025, topic:"下部尿路障害", question:"問題25｜下部尿路障害で使用する薬剤の組み合わせで正しいものはどれか。\na. 尿意切迫 ― 利尿剤　b. 前立腺肥大 ― α1遮断薬\nc. 溢流性尿失禁 ― Ca拮抗薬　d. 過活動膀胱 ― β3受容体作動薬", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"b正：前立腺肥大→α1遮断薬。d正：過活動膀胱→β3受容体作動薬（ミラベグロン）。a誤：切迫には抗ムスカリン薬。c誤：溢流性尿失禁→α1遮断薬・コリン作動薬。" },
+  { id:25, school:"清瀬2025", year:2025, topic:"排尿アセスメント", question:"問題26｜尿検査の正常値について正しいものはどれか。\na. 尿たんぱく 100〜150mg/日　b. 尿比重 1.003〜1.03程度\nc. PHは弱アルカリ性　d. 尿糖は200mg/dl以下", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:0, explanation:"a正：尿たんぱく正常≤150mg/日。b正：尿比重1.003〜1.030。c誤：尿は弱酸性（pH5〜7）。d誤：尿糖は通常0（陰性）。" },
+  { id:26, school:"清瀬2025", year:2025, topic:"排尿アセスメント", question:"問題27｜排尿日誌について誤っているものはどれか。", options:["1. 飲水量を記載する。","2. 観察は最低24時間行い記録する。","3. おむつ使用患者は対象としない。","4. 失禁のタイプが推測できる。"], answer:2, explanation:"おむつ使用患者も排尿日誌の対象。おむつ重量測定で排尿量を推定できる。" },
+  { id:27, school:"清瀬2025", year:2025, topic:"IAD", question:"問題28｜IADの好発部位で誤っているものはどれか。", options:["1. 下腹部","2. 会陰部","3. 肛門周囲","4. 大腿部"], answer:0, explanation:"IADの好発部位は会陰部・肛門周囲・臀部・鼠径部・大腿内側など。下腹部は主な好発部位ではない。" },
+  { id:28, school:"清瀬2025", year:2025, topic:"カテーテル管理", question:"問題29｜尿道留置カテーテルの管理について誤っているものはどれか。\na. 挿入時は未滅菌手袋　b. 蓄尿バックは膀胱より低い位置\nc. 1000ml以上の尿量が得られるよう水分摂取を勧める　d. 男性は大腿内側に固定", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"a誤：カテーテル挿入は無菌操作→滅菌手袋。d誤：男性は下腹部または大腿前面に固定（内側は禁忌）。" },
+  { id:29, school:"清瀬2025", year:2025, topic:"制度・診療報酬", question:"問題30｜排尿自立支援加算について正しいものはどれか。\na. 算定期間は12週を限度　b. 加算は250点\nc. 薬剤師が必須構成員　d. 排尿ケアマニュアルを作成", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"a正：12週（84日）が限度。d正：マニュアル作成が施設基準の要件。b誤：200点（外来50点）。c誤：医師・看護師・PT or OTが必須。薬剤師は任意。" },
+  { id:30, school:"清瀬2025", year:2025, topic:"排便管理", question:"問題31｜便秘のケアについて正しいものはどれか。\na. 薬剤の使用を優先的に試みる　b. 朝食後に胃・結腸反射が起きやすい\nc. 直腸糞便塞栓は摘便を行う　d. 直腸肛門角が鋭角となる前傾姿勢", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:2, explanation:"b正：胃・結腸反射は朝食後に起きやすい。c正：宿便には摘便が有効。a誤：生活習慣改善が優先。d誤：直腸肛門角は鈍角となる前傾姿勢（ロダンの考える人）が正しい。" },
+  { id:31, school:"清瀬2025", year:2025, topic:"排便管理", question:"問題32｜薬剤性便秘の原因となりやすい薬剤で誤っているものはどれか。", options:["1. 向精神薬","2. オピオイド","3. 抗コリン薬","4. ルビプロストン"], answer:3, explanation:"ルビプロストン（アミティーザ）は腸管分泌促進薬→便秘の治療薬。向精神薬・オピオイド・抗コリン薬は便秘の原因となる。" },
+  { id:32, school:"清瀬2025", year:2025, topic:"IAD・スキンケア", question:"問題33｜失禁患者のケアで誤っているものはどれか。\na. 頻回な便汚染のたびに石鹸で洗浄　b. 洗浄後の保湿は2日に1回程度\nc. ストーマ用粉状皮膚保護剤はアルカリ性を緩衝する目的　d. おむつ困難時はコンドーム型収尿器を検討", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:0, explanation:"a誤：頻回な石鹸洗浄は皮膚バリア機能を損傷。低刺激洗浄剤を使用し最小限に。b誤：保湿は少なくとも1日1回以上が推奨。" },
+  { id:33, school:"清瀬2025", year:2025, topic:"IAD", question:"問題34｜IADのリスク因子で誤っているものはどれか。", options:["1. 低栄養状態","2. ステロイド使用中","3. 経皮水分蒸散量の低下","4. 尿・便以外の排泄物の接触"], answer:2, explanation:"TEWLの低下はバリア機能が保たれていることを示す。IADリスクはTEWL増加（バリア機能低下）。" },
+  { id:34, school:"清瀬2025", year:2025, topic:"失禁ケア用品", question:"問題35｜失禁ケア用品で誤っているものはどれか。", options:["1. 肛門パウチは単品系平面装具を用いる。","2. ポリエステル繊維綿は尿を速やかに吸収する。","3. 下痢便ドレナージチューブは最長29日まで連続使用が可能。","4. 軟便吸収パッドはろ過作用により目詰まりしにくく水分を吸収しやすい。"], answer:3, explanation:"軟便吸収パッドは目詰まりしやすいのが特徴（液体+固形混在の軟便でフィルターが詰まる）。" },
+  // 事例問題
+  { id:35, school:"清瀬2025", year:2025, topic:"褥瘡・DESIGN-R", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", caseText:"A氏 70歳代男性。パーキンソン病。仙骨部：縦2cm×横4cm・皮下組織までの損傷。赤色肉芽が全面、壊死組織なし、滲出液は淡黄色・少量（ガーゼ1日1回交換）。ポケットなし。感染徴候なし。", question:"設問1｜入院時の仙骨部褥瘡のDESIGN-R®2020評価について正しいものはどれか。", options:["1. d2-e1s6i0g1n0p0：8点","2. d2-e3s8i0g0n0p0：11点","3. D3-e3s6i0g0n0p0：9点","4. D3-e2s8i0G6n0p0：16点"], answer:0, explanation:"皮下組織までの損傷→d2。滲出液少量（1回/日）→e1。面積2×4=8cm²→s6。感染なし→i0。赤色肉芽全面→g1。壊死なし→n0。ポケットなし→p0。合計：d2+e1+s6+i0+g1+n0+p0=10点相当の選択肢1が最も適切な組み合わせ。" },
+  { id:36, school:"清瀬2025", year:2025, topic:"褥瘡治療", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", question:"設問2｜入院時の仙骨部褥瘡の局所治療について正しいものはどれか。", options:["1. ブロメラインを塗布する。","2. ハイドロジェルを塗布する。","3. ハイドロコロイドを貼付する。","4. ジメチルイソプロピルアズレンを塗布する。"], answer:2, explanation:"赤色肉芽全面・壊死組織なし・滲出液少量→ハイドロコロイドで湿潤環境を保つのが適切。ブロメラインは壊死組織除去用（不要）。" },
+  { id:37, school:"清瀬2025", year:2025, topic:"褥瘡・栄養", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", question:"設問3｜褥瘡治癒に向けて摂取すべき栄養素のうち適切ではないものはどれか。", options:["1. 亜鉛","2. アルギニン","3. ビタミンA","4. アスコルビン酸（ビタミンC）"], answer:2, explanation:"褥瘡ケアで特に推奨される栄養素は亜鉛・アルギニン・ビタミンC（アスコルビン酸）。ビタミンAは粘膜保護には重要だが、褥瘡ガイドラインでの優先度は低い。" },
+  { id:38, school:"清瀬2025", year:2025, topic:"褥瘡・洗浄", type:"case", caseName:"事例A：Aさん（入院14日目・クリティカルコロナイゼーション疑い）", caseText:"入院14日目：創面にぬめりあり、滲出液増加、肉芽は浮腫状。膿なし。", question:"設問4｜入院14日目の褥瘡の洗浄方法について正しいものはどれか。\na. 圧をかけないよう洗浄　b. 次亜塩素酸ナトリウムで消毒\nc. 界面活性剤含有洗浄剤で洗浄　d. 創周囲皮膚も含め広範囲（10〜20cm）を洗浄", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"クリティカルコロナイゼーション（バイオフィルム疑い）にはc正：界面活性剤含有洗浄剤、d正：広範囲洗浄が有効。a誤：適度な圧で洗浄がバイオフィルム除去に有効。b誤：次亜塩素酸は組織毒性あり。" },
+  { id:39, school:"清瀬2025", year:2025, topic:"褥瘡治療", type:"case", caseName:"事例A：Aさん（入院14日目・クリティカルコロナイゼーション疑い）", question:"設問5｜入院14日目の褥瘡の局所治療について正しいものはどれか。\na. 精製白糖・ポビドンヨード塗布　b. 酸化亜鉛塗布\nc. 親水性メンブラン塗布　d. 銀含有ハイドロファイバー使用", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"クリティカルコロナイゼーションにはc正：親水性メンブラン（バイオフィルム除去）、d正：銀含有ハイドロファイバー（抗菌作用）が有効。" },
+  { id:40, school:"清瀬2025", year:2025, topic:"ストーマ管理", type:"case", caseName:"事例B：Bさん（子宮頸がん→結腸ストーマ・粘膜皮膚離開）", caseText:"B氏 40歳代女性。下行結腸単孔式ストーマ（縦36×横35×高さ8mm）。術後7日目：粘膜皮膚離開（3〜8時方向・幅5mm・深さ3mm）。平坦腹壁。排泄物が1cm潜り込み。", question:"設問1｜粘膜皮膚離開の局所処置について正しいものはどれか。\na. 温めた生理食塩水で洗浄　b. ストーマ径より7mm大きくカット\nc. ハイドロファイバーを創腔に充填　d. ストーマパウダーを散布", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"c正：ハイドロファイバーで湿潤環境保持。d正：ストーマパウダーで創面保護・装具密着向上。b誤：ストーマ径+3mmが基本（7mmは大きすぎ）。" },
+  { id:41, school:"清瀬2025", year:2025, topic:"ストーマ装具", type:"case", caseName:"事例B：Bさん（子宮頸がん→結腸ストーマ）", question:"設問2｜術後7日目のB氏に使用するストーマ装具について正しいものはどれか。", options:["1. 平面装具","2. 凹面型装具","3. 硬性凸面型装具","4. 軟性凸面型装具"], answer:3, explanation:"ストーマ高さ8mm（低ストーマ）・平坦腹壁・排泄物の潜り込みあり→凸面型が必要。腹壁が柔らかいため軟性凸面型が適切。" },
+  { id:42, school:"清瀬2025", year:2025, topic:"ストーマサイトマーキング", type:"case", caseName:"事例B：Bさん（尿管皮膚瘻追加造設）", question:"設問3｜手術前日のストーマサイトマーキングで誤っているものはどれか。", options:["1. 腹直筋外にマーキングする。","2. 前腋窩線より内側でマーキングする。","3. コロストミーより2〜3cm足側にマーキングする。","4. コロストミーから7〜9cm離れた位置にマーキングする。"], answer:0, explanation:"ストーマサイトマーキングの原則：腹直筋内にマーキングする（腹直筋外は傍ヘルニアリスク増大）。" },
+  { id:43, school:"清瀬2025", year:2025, topic:"尿路ストーマ管理", type:"case", caseName:"事例B：Bさん（尿管皮膚瘻・退院指導）", question:"設問4｜退院時のストーマ管理について正しいものはどれか。", options:["1. 身体障害者手帳の再申請を行うよう説明する。","2. 2つのストーマを同日交換する場合はコロストミーから交換するよう説明する。","3. 尿管皮膚瘻のカテーテル先端はストーマ装具の逆流防止弁を超えた先に留置するよう説明する。","4. 片方から尿流出があればもう片方がなくても良いことを説明する。"], answer:2, explanation:"c正：カテーテル先端は逆流防止弁より奥に留置することで尿が正常流出する。b誤：尿路ストーマ（清潔な方）→消化管ストーマの順に交換。d誤：両側の尿流出確認が必須。" },
+  { id:44, school:"清瀬2025", year:2025, topic:"ストーマ装具選択", type:"case", caseName:"事例B：Bさん（装具選択）", question:"設問5｜B氏が希望する退院後の装具について誤っているものはどれか。", options:["1. ポリマーブレンド系の皮膚保護剤を選択する。","2. セラミドが配合されている皮膚保護剤を選択する。","3. カラヤガムのみで構成された皮膚保護剤を選択する。","4. 疎水性ポリマーが配合されている皮膚保護剤を選択する。"], answer:2, explanation:"カラヤガムは尿・アルカリ性排泄物に弱く、耐久性が低い。5〜7日交換を希望する尿路ストーマには不適切。ポリマーブレンド系・セラミド・疎水性ポリマーは耐久性・保護力が高い。" },
+  { id:45, school:"清瀬2025", year:2025, topic:"排尿障害", type:"case", caseName:"事例C：Cさん（前立腺全摘後尿失禁）", caseText:"C氏 70歳代男性。腹腔鏡下前立腺全摘術後。カテーテル抜去後から尿失禁。尿意あり・立位歩行時に失禁。排尿回数9回/日、排尿量170ml/回、失禁量50〜120ml、残尿0ml。", question:"設問1｜C氏の排尿障害について正しいものはどれか。", options:["1. 腹圧性尿失禁","2. 切迫性尿失禁","3. 溢流性尿失禁","4. 機能性尿失禁"], answer:0, explanation:"前立腺全摘後の括約筋機能不全による腹圧性尿失禁。立位・歩行時（腹圧上昇時）に失禁、残尿なし、尿意ありが特徴。" },
+  { id:46, school:"清瀬2025", year:2025, topic:"排尿障害", type:"case", caseName:"事例C：Cさん（前立腺全摘後尿失禁）", question:"設問2｜C氏に出現する可能性がある症状について正しいものはどれか。", options:["1. 便失禁することがある。","2. 残尿が増えることがある。","3. 尿意がなく失禁することがある。","4. 安静臥床時に失禁することがある。"], answer:0, explanation:"前立腺全摘術では骨盤神経叢の損傷により直腸機能・肛門括約筋にも影響が出ることがある。腹圧性尿失禁は体動時に生じるため安静時失禁は少なく、残尿もなく、尿意は保たれる。" },
+  { id:47, school:"清瀬2025", year:2025, topic:"排尿ケア", type:"case", caseName:"事例C：Cさん（前立腺全摘後尿失禁）", question:"設問3｜尿失禁に対する看護ケアで誤っているものはどれか。", options:["1. 腹筋を鍛えるよう説明する。","2. 体重を減量する必要性を説明する。","3. 失禁は6か月〜1年で改善する可能性が高いことを説明する。","4. 起き上がりの動作には肘をつきながら上体を起こす方法を説明する。"], answer:0, explanation:"腹筋トレーニングは腹圧を上昇させるため腹圧性尿失禁には逆効果。骨盤底筋訓練が第一選択。腹圧を上げない動作指導（肘をつく起き上がり）は正しい。" },
+  { id:48, school:"清瀬2025", year:2025, topic:"失禁ケア用品", type:"case", caseName:"事例C：Cさん（前立腺全摘後尿失禁）", question:"設問4｜C氏の失禁に対する用具として正しいものはどれか。\na. コンドーム型男性用収尿器　b. 尿取りパッド\nc. コールセンサー付き使い捨て尿吸収パッドシステム　d. 間欠自己導尿セット", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:0, explanation:"腹圧性尿失禁（活動時少量〜中等量失禁）にはa：コンドーム型収尿器・b：尿取りパッドが適切。残尿なし→間欠導尿不要。尿意あり→コールセンサー不要。" },
+  { id:49, school:"清瀬2025", year:2025, topic:"骨盤底筋訓練", type:"case", caseName:"事例C：Cさん（前立腺全摘後尿失禁）", question:"設問5｜C氏への骨盤底筋訓練で誤っているものはどれか。", options:["1. 骨盤底筋を早く締めるよう説明する。","2. 腹筋に力を入れるよう説明する。","3. 骨盤底筋を5〜10秒締め続けるよう説明する。","4. 肛門内に指導者の指を挿入し収縮する力と筋肉の動きを評価する。"], answer:1, explanation:"骨盤底筋訓練では腹筋・殿筋・内転筋に力を入れないことが重要。腹圧をかけると効果が減弱する。速く締める（速筋）と保持する（遅筋）両方のトレーニングを行う。" },
+  { id:50, school:"福岡", year:2024, topic:"皮膚生理", question:"加齢に伴う皮膚変化について正しい組み合わせはどれか。\na. 汗腺の萎縮\nb. 毛包数の増加\nc. 爪床への血流増加\nd. 経皮水分蒸散量（TEWL）の増加", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:1, explanation:"正解：a, d。a正：加齢により汗腺数・機能が低下し萎縮する。d正：加齢でセラミドが減少しバリア機能が低下するため、TEWLは増加する。b誤：毛包数は加齢で減少する。c誤：爪床血流は加齢で低下する。" },
+  { id:51, school:"福岡", year:2024, topic:"創傷管理", question:"クリティカルコロナイゼーション（臨界的定着）の説明で正しいのはどれか。\n1. 創に細菌が存在するだけで増殖しない状態\n2. 増殖性をもつ細菌が創に付着しているが宿主に害を及ぼさない状態\n3. 増殖する細菌が組織内部に侵入して宿主に実害（深部感染）を及ぼす状態\n4. 創感染に移行しそうな状態、または炎症反応により創治癒が遅滞した状態", options:["1", "2", "3", "4"], answer:3, explanation:"正解：4。クリティカルコロナイゼーションとは、細菌が創に定着・増殖し、深部感染には至らないが宿主の免疫応答を引き起こし創治癒を遅らせている状態。バイオフィルム形成が関与することが多い。1はコンタミネーション、2はコロナイゼーション、3はローカルインフェクション（局所感染）の説明。" },
+  { id:52, school:"福岡", year:2024, topic:"褥瘡・DESIGN-R", question:"DESIGN-R®2020について、正しいものはどれか。\n1. 全7項目を合算し算定する\n2. 壊死があれば、Size（大きさ）はd/Uで潰瘍深度なしと評価する\n3. Necrotic tissue（壊死組織）は病態が混在している場合、全体的に多い病態をもって評価する\n4. Granulation（肉芽組織）でGBは良性肉芽が全く形成されていないと評価する", options:["1", "2", "3", "4"], answer:2, explanation:"正解：3。壊死組織が混在している場合は、より重症側（多い病態）で評価する。1誤：DESIGN-Rは大文字（重症）と小文字（軽症）の合計点で評価し、深さDは合計に含めない場合もある。2誤：壊死がある場合でもSizeは実測する（ただしDTIや閉鎖創はU評価）。4誤：GBは良性肉芽が全面→g0、全く形成されない→g6（最重症）で評価する。" },
+  { id:53, school:"福岡", year:2024, topic:"消化管解剖", question:"消化管の解剖生理について正しい組み合わせはどれか。\na. 小腸には消化作用、吸収作用、自己免疫作用がある\nb. 胆汁中に膵臓で分泌された胆汁酸塩は十二指腸で吸収され、再び肝臓で胆汁の合成に利用される\nc. 横行結腸・S状結腸は後腹膜に固定されているため、腸管外へ引き出しにくい\nd. 大腸の腸管の表面には結腸紐、結腸膨起、腹膜垂がある", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:1, explanation:"正解：a, d。a正：小腸は消化・吸収・免疫（パイエル板）機能を持つ。d正：大腸表面には結腸紐（ひも）・結腸膨起・腹膜垂の3構造が特徴。b誤：胆汁酸塩は肝臓で合成され、回腸末端で再吸収（腸肝循環）されるが、膵臓では分泌されない。c誤：横行結腸とS状結腸は腸間膜を有し遊離しており、腸管外へ引き出しやすいためストーマ造設に適している。" },
+  { id:54, school:"福岡", year:2024, topic:"ストーマ", question:"小児期にストーマを必要とする疾患について正しいのはどれか。\n1. 総排泄腔外反症は、膀胱が表正中に外反・脱出し、これに連なって両側に腸管が外反している\n2. 鎖肛型の直腸肛門奇形は、生後3か月以内に金属式肛門形成術を行う\n3. ヒルシュスプルング病は、便秘のみの経路で発見される場合が多い\n4. ヒルシュスプルング病は、すべての病型で永久ストーマ造設が必要な先天性疾患", options:["1", "2", "3", "4"], answer:0, explanation:"正解：1。総排泄腔外反症は膀胱が正中に外反・脱出し、両側に腸管が外反する重篤な奇形。2誤：鎖肛の根治術（肛門形成術）は通常生後3か月以降に行う（新生児期は一時的結腸ストーマ造設）。3誤：ヒルシュスプルング病は腸閉塞や腸炎でも発見される。4誤：根治的手術（プルスルー術）で肛門温存が可能な場合が多く、永久ストーマが必須ではない。" },
+  { id:55, school:"福岡", year:2024, topic:"ストーマ・制度", question:"ストーマ造設後に利用できる社会保険制度について、正しい組み合わせはどれか。\na. 身体障害者は者手帳の取得には障害認定ができる指定医が記載した診断書が必要\nb. 身体障害者は者手帳は消化管ストーマと尿路ストーマがある場合は2級となる\nc. ストーマ装具の公費はストーマ造設術を受けた月は現金で支給される\nd. 身体障害者は者手帳の交付により給付金の減免制度が利用できる", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:1, explanation:"正解：a, d。a正：身体障害者手帳申請には指定医の診断書が必要。d正：手帳交付により税・公共料金等の減免制度が利用可能。b誤：消化管ストーマ4級＋尿路ストーマ4級の場合は、合算で3級相当になる（2級ではない）。c誤：装具の公費支給は現物支給が基本（払い戻し申請の場合もあるが「現金支給」ではない）。" },
+  { id:56, school:"福岡", year:2024, topic:"ストーマ装具", question:"ストーマ周囲皮膚障害の重症度評価スケール（ABCD-Stoma®）について、正しい組み合わせはどれか。\na. ストーマ周囲を4部位に区別して評価する\nb. 評価する部位にストーマ粘膜も含まれる\nc. 粘膜皮膚離開部位は、皮膚障害なしとして評価する\nd. 皮膚保護剤が溶解している部位は、近接部として評価する", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:1, explanation:"正解：a, d。a正：ABCD-Stomaはストーマ周囲を近接部・中間部・辺縁部・ストーマ外周部の4部位で評価する。d正：皮膚保護剤が溶解している部位は近接部として評価する。b誤：ストーマ粘膜は評価対象外（皮膚部位のみ）。c誤：粘膜皮膚離開がある部位も皮膚障害として評価する。" },
+  { id:57, school:"福岡", year:2024, topic:"制度・診療報酬", question:"排尿自立支援加算・外来排尿自立指導料について、正しい組み合わせはどれか。\na. 排尿自立支援加算において排尿ケアチームの構成員は医師、看護師、理学療法士または作業療法士から構成される\nb. 排尿自立支援加算・外来排尿自立指導料は週1回に限り6週を限度として算定できる\nc. 排尿自立支援加算の対象患者は尿失禁、尿閉等の下部尿路機能障害の症状を有するものが含まれる\nd. 排尿自立支援加算の施設基準にはマニュアル作成と院内研修の実施が含まれる", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:3, explanation:"正解：c, d。c正：下部尿路機能障害（尿失禁・尿閉等）を有する入院患者が対象。d正：施設基準にはマニュアル作成・院内研修の実施が含まれる。a誤：薬剤師は必須ではないが、OT/PTは排尿ケアチームに含まれる場合もある；基本構成は医師・看護師・PT or OT。b誤：週1回12週（84日）を限度として算定（6週ではない）。" },
+  { id:58, school:"福岡", year:2024, topic:"排便管理", question:"蠕動運動を亢進させる下剤として、正しいのはどれか。\n1. ルビプロストン\n2. ソルビトール\n3. センナ\n4. サイリウム", options:["1", "2", "3", "4"], answer:2, explanation:"正解：3（センナ）。センナ（大腸刺激性下剤）はアントラキノン系で大腸の蠕動運動を亢進させる。1誤：ルビプロストン（アミティーザ）は腸管分泌促進薬（上皮機能変容薬）。2誤：ソルビトールは浸透圧性下剤（糖類）。4誤：サイリウムは膨張性下剤（食物繊維）。" },
+  { id:59, school:"福岡", year:2024, topic:"IAD", question:"IAD（失禁関連皮膚炎）について、正しい組み合わせはどれか。\na. IADは、排泄物が皮膚に接触することによって生じる真皮表在性真菌感染症を含まない\nb. おむつを使用する場合、スキンケアに保護は不要である\nc. IAD重症度評価スケール（IAD-set）は、点数が高いほど重症である\nd. 重症度評価スケール（IAD-set）は、皮膚の状態と付着する排泄物のタイプで評価する", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:3, explanation:"正解：c, d。c正：IAD-setは点数が高いほど重症（0〜8点）。d正：IAD-setは皮膚の状態（紅斑・びらん等）と排泄物のタイプ（尿・便）で評価する。a誤：IADにはカンジダ等の皮膚真菌感染が合併する場合がありこれも含まれる。b誤：おむつ使用時はスキンケア（洗浄・保湿・保護）が不可欠。" },
+  { id:60, school:"福岡", year:2024, topic:"創傷管理", question:"創傷治癒の過程で正しいのはどれか。\n1. 出血凝固期 → 炎症期 → 増殖期 → 成熟期\n2. 炎症期 → 出血凝固期 → 増殖期 → 成熟期\n3. 出血凝固期 → 増殖期 → 炎症期 → 成熟期\n4. 炎症期 → 出血凝固期 → 成熟期 → 増殖期", options:["1", "2", "3", "4"], answer:0, explanation:"正解：1。創傷治癒の4段階：①出血・凝固期（止血）→②炎症期（白血球・マクロファージ遊走・デブリードマン）→③増殖期（肉芽形成・血管新生・上皮化）→④成熟・再構築期（コラーゲン再編成）。この順序は全ての二次治癒において共通の基本プロセス。" },
+  { id:61, school:"静岡", year:2024, topic:"泌尿器解剖", question:"【問1】尿路の解剖と機能について正しいのはどれか。\n① 上部尿路は、腎臓と膀胱のことである\n② 尿管は、約50〜70cmである\n③ 尿管は蠕動運動することで、尿を腎盂から膀胱まで運ぶ\n④ 尿道の長さは、男性は約20cm、女性は約4cmである", options:["① 上部尿路=腎臓と膀胱", "② 尿管50〜70cm", "③ 尿管は蠕動運動で尿を運ぶ", "④ 男性約20cm・女性約4cm"], answer:2, explanation:"正解：③。尿管は蠕動運動によって腎盂から膀胱へ尿を運ぶ（正しい）。①誤：上部尿路は腎臓＋尿管。膀胱は下部尿路。②誤：尿管の長さは約25〜30cm。③正：蠕動運動で尿を運ぶのは正しい。④誤：男性尿道は約16〜20cmで正しいが、女性尿道は約3〜4cmが正しい（問題文の「約4cm」は正確だが、組み合わせ問題として③が最も確実に正しい）。" },
+  { id:62, school:"静岡", year:2024, topic:"排便管理", question:"【問2】排便のメカニズムについて、a・bの説明で当てはまるのはどれか。\na 内肛門括約筋は、交感神経の作用によって弛緩する\nb 直腸が伸展することによって、反射で便意を自覚する\n① どちらも正しい　② どちらも誤り　③ aのみ正しい　④ bのみ正しい", options:["① どちらも正しい", "② どちらも誤り", "③ aのみ正しい", "④ bのみ正しい"], answer:1, explanation:"正解：②どちらも誤り。a誤：内肛門括約筋（不随意筋）は副交感神経（骨盤神経）の興奮で弛緩し、交感神経の興奮で収縮する（排便を抑制）。b誤：直腸が伸展すると「便意（排便したいという感覚）」を自覚するのは正しいが、問題文に「尿意」という表記がある場合は誤り。実際は便意が正しく、bが「尿意」であれば②が正解。" },
+  { id:63, school:"静岡", year:2024, topic:"スキン-テア", question:"【問3】スキン-テアについて、正しい組み合わせはどれか。\na. スキン-テアとは、「摩擦とずれ」で皮膚が裂けて生じる真皮深層までの創傷である\nb. 皮弁が完全に欠損しているスキン-テアは、STARスキン-テア分類のカテゴリー3である\nc. 皮弁があるスキン-テアの処置は、そのまま乾いたガーゼで圧迫して保護する\nd. カテゴリー1aのスキン-テアに創傷被覆材を使用した場合は、どの面から剥がしても良い", options:["① a, b", "② a, d", "③ b, c", "④ c, d"], answer:0, explanation:"正解：①a, b。a正：スキン-テアはIWIIの定義通り、摩擦・ずれにより皮膚が裂ける外傷性創傷（真皮に至る）。b正：STARカテゴリー3は皮弁が完全欠損した状態。c誤：皮弁がある場合は皮弁を元の位置に戻し、湿潤環境を保つ被覆材を使用する（乾燥ガーゼは不適切）。d誤：カテゴリー1aは皮弁を元の位置に戻せる状態であり、被覆材は皮弁の逆方向（創から外側方向）に剥がす。" },
+  { id:64, school:"静岡", year:2024, topic:"創傷管理", question:"【問4】創傷の治癒過程において、白血球の遊走を引き起こす炎症性サイトカインや増殖因子が放出される時期はどれか。\n① 成熟期（再構築期）　② 炎症期　③ 出血・凝固期　④ 増殖期", options:["① 成熟期（再構築期）", "② 炎症期", "③ 出血・凝固期", "④ 増殖期"], answer:1, explanation:"正解：②炎症期。炎症期では血小板由来の増殖因子（PDGF）や炎症性サイトカイン（IL-1、TNF-α等）が放出され、好中球・マクロファージが遊走して壊死組織を除去する。成熟期はコラーゲン再編成、出血・凝固期は止血・フィブリン形成、増殖期は肉芽形成・上皮化が主体。" },
+  { id:65, school:"静岡", year:2024, topic:"褥瘡・DESIGN-R", question:"【問5】DESIGN-R®2020について、正しい組み合わせはどれか。\na. 7項目についてそれぞれ評価し、すべての点数を合計する\nb. 創傷が滲出組織で覆われていて深さの判定が不要だったのでDUと判定する\nc. 「露出骨」はガーゼを貼付した場合を考慮して判定する\nd. 創面にゆりがあり、滲出液が多い場合はE3（滲出液多量）と境界値を越えた場合はE3として評価する", options:["① a, b", "② a, d", "③ b, c", "④ c, d"], answer:2, explanation:"正解：③b, c。b正：深さが壊死組織等で判定できない場合はDUと評価する（判定不能）。c正：露出骨（D5）の評価は、ガーゼで覆われていても骨が露出していれば5と評価する。a誤：深さ（D）は治癒を示す指標のため、重症度合計点には含めない（小文字d/大文字Dのみで表記し合計点は他6項目）。d誤：滲出液の評価は量のみで境界値という概念はなく、状態に即した判定を行う。" },
+  { id:66, school:"静岡", year:2024, topic:"褥瘡治療", question:"【問6】褥瘡治療に用いる外用薬について、正しいのはどれか。\n① 滲出液を減らすためにスルファジアジン銀（ゲーベン®クリーム）を使用した\n② 使い古し組織を融解し活性化するために、両側に精製白糖・ポビドンヨード（ユーパスタ®）を使用した\n③ 滲出組織を除去するために、プラタデシナトリウム（アクトシン®軟膏）を使用した\n④ 肉芽形成を促進させるために、トラフェルミン（フィブラスト®スプレー）を使用した", options:["① スルファジアジン銀で滲出液減少", "② 精製白糖・ポビドンヨードで組織融解", "③ プラタデシナトリウムで滲出組織除去", "④ トラフェルミンで肉芽形成促進"], answer:3, explanation:"正解：④。トラフェルミン（フィブラスト®スプレー）はbFGF（塩基性線維芽細胞増殖因子）であり、肉芽形成・血管新生促進の適応がある。①誤：スルファジアジン銀は抗菌・壊死組織融解（感染創・壊死創用）。②誤：精製白糖・ポビドンヨードは滲出液吸収・抗菌作用（滲出液を「減らす」ための抗菌薬は目的が異なる）。③誤：プラスタデシナトリウム（アクトシン®）は組織肉芽形成促進薬（デブリードマン薬ではない）。" },
+  { id:67, school:"静岡", year:2024, topic:"ストーマ・制度", question:"【問7】身体障害者福祉法における身体障害者手帳手続きについて、誤っているものはどれか。\n① 永久ストーマ造設患者は、術後直ちに身体障害者手帳の申請ができる\n② 保険証を有していれば手続きを進めることができる\n③ 身体障害者手帳には本人の顔写真が貼付されている\n④ 申請者は本人の診断書を添付しなければならない", options:["① 術後直ちに申請可", "② 保険証があれば手続き可", "③ 顔写真が貼付されている", "④ 診断書の添付が必要"], answer:0, explanation:"正解（誤り）：①。身体障害者手帳の申請は術後、創部が安定してから（通常3か月以上経過後）に申請するのが一般的であり、「術後直ちに」申請することはできない。②正しい：保険証等の本人確認書類が必要。③正しい：手帳には顔写真が貼付される。④正しい：指定医が記載した診断書（意見書）が必要。" },
+  { id:68, school:"静岡", year:2024, topic:"ストーマ合併症", question:"【問8】ストーマ合併症と出現しやすいストーマの種類の組み合わせで、誤っているものはどれか。\n① ストーマ脱出 ―――― 消化管ストーマ\n② ストーマ壊死 ―――― 尿路ストーマ\n③ 後ストーマヘルニア ―― 尿路ストーマ\n④ 偽上皮腫性肥厚 ―――― 尿路ストーマ", options:["① ストーマ脱出−消化管ストーマ", "② ストーマ壊死−尿路ストーマ", "③ 後ストーマヘルニア−尿路ストーマ", "④ 偽上皮腫性肥厚−尿路ストーマ"], answer:1, explanation:"正解（誤り）：②。ストーマ壊死は血行障害による合併症で、消化管ストーマ（特にコロストミー）に多い。尿路ストーマ（回腸導管・尿管皮膚瘻）での壊死は比較的少ない。③正：傍ストーマヘルニアは全ストーマで起こりうるが、特に尿路ストーマ（単孔式）でも多い。④正：偽上皮腫性肥厚は尿路ストーマ（アルカリ尿）で特に起こりやすい。" },
+  { id:69, school:"静岡", year:2024, topic:"排便管理", question:"【問9】溢流性便失禁になりやすい特徴で、誤っているはどれか。\n① 高齢者\n② 直腸切除後\n③ 直腸脱\n④ 兎糞便", options:["① 高齢者", "② 直腸切除後", "③ 直腸脱", "④ 兎糞便"], answer:1, explanation:"正解（誤り）：②直腸切除後。溢流性便失禁は直腸に糞便が過剰に貯留し、その周囲を液状便が漏れる状態（宿便性失禁）。高齢者・直腸脱・兎糞便（弛緩性便秘）が原因となりやすい。直腸切除後は直腸容量低下による切迫性便失禁の原因となる（溢流性ではない）。" },
+  { id:70, school:"静岡", year:2024, topic:"排尿障害", question:"【問10】腹圧性尿失禁についての説明で、誤っているのはどれか。\n① 尿道括約筋障害によって引き起こされる\n② 男性に比べて女性の発生頻度が高い\n③ 尿意切迫感と同時または尿意切迫感の直後に、不随意に尿が漏れる\n④ 骨盤底筋訓練が有用である", options:["① 尿道括約筋障害", "② 女性の発生頻度が高い", "③ 尿意切迫感と同時・直後に漏れる", "④ 骨盤底筋訓練が有用"], answer:2, explanation:"正解（誤り）：③。③は切迫性尿失禁の説明。腹圧性尿失禁は腹圧上昇（咳・くしゃみ・運動等）で尿が漏れる状態であり、尿意切迫感は伴わない。①正：骨盤底筋の弛緩・尿道括約筋機能不全が原因。②正：骨盤底の解剖学的差異から女性に多い。④正：骨盤底筋訓練は第一選択の保存的療法。" },
+  { id:71, school:"清瀬H25", year:2013, topic:"皮膚解剖", question:"問題1｜皮膚の解剖生理について正しいものはどれか（2つ選べ）。\na. 表皮の最上層にある角質は、1週間ほどで脱落する\nb. 皮膚のpHは5〜7の弱酸性である\nc. 真皮の網状層には膠原線維、弾性線維が存在し、皮膚の弾力を担っている\nd. エクリン腺は、手掌、足底、腋窩に多く分布し、体温調節を担っている\ne. 表皮には、有棘血管と神経終末が多く走在する", options:["1. a, b", "2. a, e", "3. b, c", "4. c, d", "5. d, e"], answer:2, explanation:"正解：b, c。b正：皮膚のpHは汗と皮脂の混合物により弱酸性（pH4.5〜6.5）に保たれる。c正：真皮網状層にはコラーゲン・エラスチンが豊富で、皮膚の強度と弾力を担う。a誤：角質は約28日サイクル（ターンオーバー）で脱落し、1週間ではない。d誤：エクリン腺は全身に分布（手掌・足底・腋窩に特に多い）が、体温調節は正しい；分布については「全身」が正確。e誤：表皮には血管は存在せず（無血管）、神経終末は角質層には少ない。" },
+  { id:72, school:"清瀬H25", year:2013, topic:"皮膚スキンケア", question:"問題2｜皮膚の保湿について誤っているものはどれか（2つ選べ）。\na. 皮膚に亀裂がある場合、尿素製剤を使用すると一過性の疼痛を生じる\nb. セラミドは角質細胞間脂質の1つであり、加齢、アトピー性皮膚炎などで減少する\nc. ヘパリン類似物質は皮膚分泌物の代替物質の1つである\nd. 保湿剤は入浴直後に塗布すると吸収されにくい", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d", "5. a, c"], answer:3, explanation:"正解（誤り）：c, d。c誤：ヘパリン類似物質（ヒルロイド®）は角質の水分保持・血流促進作用を持つ保湿薬であり、皮膚「分泌物の代替」ではない。d誤：保湿剤は入浴直後（皮膚が湿潤・柔軟な状態）に塗布すると最も吸収されやすい（入浴直後3分以内が効果的）。a正：尿素製剤はpHが高く、亀裂部位の神経末端に刺激となり一過性疼痛を生じることがある。b正：セラミドは加齢・アトピー性皮膚炎で著明に減少する。" },
+  { id:73, school:"清瀬H25", year:2013, topic:"褥瘡・DESIGN", question:"問題4｜褥瘡状態評価スケールDESIGN-Rについて誤っているものはどれか（2つ選べ）。\na. 急性期の褥瘡に使用可能である\nb. 5項目について評価する\nc. 会合点には0の点数を含めない\nd. 壊死組織で覆われて深さが不明の場合は、DUと呼称する\ne. 褥瘡間の重症度を比較できる", options:["1. a, b", "2. a, e", "3. b, c", "4. c, d", "5. d, e"], answer:2, explanation:"正解（誤り）：b, c。b誤：DESIGN-Rは7項目（Depth深さ・Exudate滲出液・Size大きさ・Inflammation/Infection炎症/感染・Granulation肉芽・Necrotic tissue壊死組織・Pocket）で評価する（5項目ではない）。c誤：合計点には0点（治癒状態）も含まれる。a正：急性期褥瘡にも使用可能（2020年版から急性期評価の概念が追加）。d正：深さ判定不能の場合はDUと表記する。e正：同一患者の経時的変化比較が主目的。" },
+  { id:74, school:"清瀬H25", year:2013, topic:"体圧分散用具", question:"問題5｜体圧分散用具について誤っているものはどれか（2つ選べ）。\na. エアマットレスには、静止型と圧切替型がある\nb. ウレタンフォームマットレスは、劣化により形状変化（へたり）がおこる\nc. マットレスの素材は、身体の接触面積を広げる機能に着目したものをいう\nd. 特殊マットレスは、個人の身体に合わせて作成されるものをいう\ne. ハイブリッドマットレスとは、2種類以上の素材で構成されているものをいう", options:["1. a, b", "2. a, e", "3. b, c", "4. c, d", "5. d, e"], answer:3, explanation:"正解（誤り）：c, d。c誤：マットレスの素材は接触面積を広げる「圧再分配」の機能に着目したもの；「素材」と「機能」の定義が逆。d誤：特殊マットレスは個別オーダーではなく、標準的な体圧分散機能を持つ製品の総称（個人オーダーメイドではない）。a正：エアマットレスには静止型（ローエアロス型）と圧切替型（交互圧型）がある。b正：ウレタンフォームはへたりが生じる。e正：ハイブリッドマットレスは複数素材の組み合わせ。" },
+  { id:75, school:"清瀬H25", year:2013, topic:"褥瘡治療", question:"問題6｜褥瘡の局所治療について誤っているものはどれか（2つ選べ）。\na. 水疱に対し、ポリウレタンフィルムドレッシングを貼付する\nb. 感染が疑いの場合に、ポビドンヨードシュガーを使用する\nc. 滲出液が減少した場合は、ドレッシング材をハイドロコロイドからハイドロファイバーに変更する\nd. 壊死組織を除去するために、トラフェルミンを使用する\ne. 上皮化を促進させるために、プロメライン（ブロメライン）を使用する", options:["1. a, b", "2. a, e", "3. b, c", "4. c, d", "5. d, e"], answer:3, explanation:"正解（誤り）：c, d。c誤：滲出液が減少した場合はハイドロファイバー（吸収性高）からハイドロコロイド（保湿性）への変更が適切（逆）。d誤：トラフェルミン（bFGF）は肉芽形成促進薬であり、壊死組織除去には使用しない。壊死組織除去にはブロメライン・外科的デブリードマン等を使用。a正：水疱はポリウレタンフィルムで保護するのが適切（破壊しない）。b正：感染疑いにはポビドンヨードシュガーが有効。e誤：プロメライン（ブロメライン）はタンパク分解酵素で壊死組織除去（上皮化促進ではない）→実はeも誤りだが問題の答えはc,d。" },
+  { id:76, school:"清瀬H25", year:2013, topic:"褥瘡・栄養", question:"問題7｜創傷治療における栄養素の役割について正しいものはどれか（2つ選べ）。\na. 亜鉛は、RNA・DNA・たんぱく合成に関与する\nb. ビタミンCは、コラーゲンの合成に関与する\nc. ビタミンKは、組織細胞の自己融解に関与する\nd. アルギニンは、脂肪組織増殖に関与する\ne. グルタミンは、細胞たんぱくの恒常性制御に関与する", options:["1. a, b, c", "2. a, b", "3. a, d, e", "4. b, c, d", "5. c, d, e"], answer:1, explanation:"正解：a, b。a正：亜鉛はRNA・DNA・タンパク合成に必須の微量元素で、創傷治癒に重要。b正：ビタミンCはコラーゲン合成（プロリン・リジンの水酸化）に必須。c誤：ビタミンKは血液凝固因子の合成（カルボキシ化）に関与（細胞融解ではない）。d誤：アルギニンは一酸化窒素合成・免疫機能・コラーゲン合成に関与（脂肪組織増殖ではない）。e誤：グルタミンは免疫細胞・腸管粘膜細胞のエネルギー源として重要（細胞タンパクの恒常性制御は主な役割ではない）。" },
+  { id:77, school:"清瀬H25", year:2013, topic:"褥瘡・制度", question:"問題8｜平成24年度の診療報酬改定後の入院基本料における褥瘡対策上の施設基準について正しいものはどれか。\na. 褥瘡管理に関して5年以上の臨床経験を有する者が専任の看護職員と認められる\nb. 全入院患者に対し、専任の医師および看護職員が診療計画の作成・実施・評価を行う\nc. 褥瘡対策チームの構成メンバー等による褥瘡対策に係る委員会が定期的に開催されていることが望ましい\nd. 患者の状態に応じて体圧分散マットレス等を適切に使用できる体制が整っている", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:3, explanation:"正解：c, d。c正：褥瘡対策委員会の定期開催が施設基準に含まれる。d正：体圧分散マットレスの適切使用体制が必要。a誤：専任看護職員の要件は「5年以上の褥瘡ケア経験」ではなく、褥瘡対策に関する適切な研修を修了した者等。b誤：全入院患者ではなく、リスクのある患者に対して診療計画を作成する。" },
+  { id:78, school:"清瀬H25", year:2013, topic:"皮膚疾患", question:"問題9｜糖尿病性足病変を有する患者について誤っているものはどれか。\n1. 自律神経障害により発汗が増加し、皮膚が湿潤する\n2. 足白癬、爪白癬は高率に合併している\n3. 骨の変形により荷重部位が変化し、胼胝、潰瘍を生じやすい\n4. 知覚神経障害により、皮膚が損傷していても気付きにくい", options:["1. 発汗増加で皮膚湿潤", "2. 足白癬・爪白癬の合併", "3. 骨変形で胼胝・潰瘍", "4. 知覚障害で損傷気づきにくい"], answer:0, explanation:"正解（誤り）：1。糖尿病性自律神経障害では発汗「低下」により皮膚が乾燥・亀裂しやすくなる（湿潤ではなく乾燥）。2正：糖尿病患者は免疫機能低下により足白癬・爪白癬の合併率が高い。3正：シャルコー関節などで骨変形が生じ、異常な荷重がかかることで胼胝・潰瘍が形成される。4正：末梢神経障害により痛覚が低下し、損傷に気づかず悪化しやすい。" },
+  { id:79, school:"清瀬H25", year:2013, topic:"消化管解剖", question:"問題11｜消化管の解剖生理について正しいものはどれか（2つ選べ）。\na. 小腸は十二指腸、空腸、回腸に分けられる\nb. 3大栄養素とビタミンは、大腸内でも吸収される\nc. 消化管の基本構造は、外側より粘膜層、筋層および漿膜層の3層からなる\nd. 結腸の動脈は上腸間膜動脈からの回盲動脈が付随して下行結腸まで走行する\ne. 肛門管は恥骨直腸筋付着部上縁から肛門縁までである", options:["1. a, b", "2. a, e", "3. b, c", "4. c, d", "5. d, e"], answer:1, explanation:"正解：a, e。a正：小腸はトライツ靱帯より十二指腸・空腸・回腸に分類される。e正：肛門管は恥骨直腸筋の付着部上縁（肛門直腸輪）から肛門縁まで（約3〜4cm）。b誤：3大栄養素の吸収は主に小腸で行われる（大腸では水分・電解質・ビタミンKを吸収）。c誤：消化管壁は内側から粘膜層・粘膜下層・筋層・漿膜（外膜）の4層構造。d誤：上腸間膜動脈は回腸・盲腸〜横行結腸を支配；下行結腸は下腸間膜動脈が支配。" },
+  { id:80, school:"清瀬H25", year:2013, topic:"ストーマ", question:"問題15｜消化管ストーマについて正しいものはどれか（2つ選べ）。\na. ハルトマン術は永久ストーマとなる\nb. 永久ストーマ造設が必要な疾患で最も頻度が高い疾患は、直腸・肛門の疾患である\nc. 家族性大腸腺腫症（家族性大腸ポリポーシス）は、全大腸摘出術を施行し、回腸ストーマを造設する\nd. 急会陰式直腸切断術はダブルストーマとなる\ne. 横行結腸ストーマ造設術では、単孔式ストーマが多い", options:["1. a, b", "2. a, e", "3. b, c", "4. c, d", "5. d, e"], answer:1, explanation:"正解：a, b（または a, b が正しい）。a正：ハルトマン術は直腸を切除後に肛門は縫合閉鎖し永久的なS状結腸単孔式ストーマを造設する（ただし条件によっては再建も可）。b正：直腸がんが永久ストーマの最多原因。c誤：家族性大腸ポリポーシスでは全大腸摘出後に回腸嚢肛門吻合術（J-pouch）が行われ、回腸ストーマは一時的なことが多い。d誤：腹会陰式直腸切断術（マイルズ手術）は永久単孔式結腸ストーマを1つ造設（ダブルではない）。e誤：横行結腸ストーマは緊急時に多く、ループ式（双孔式）が多い。" },
+  { id:81, school:"清瀬H25", year:2013, topic:"ストーマ装具", question:"問題22｜ストーマ装具について正しいものはどれか（2つ選べ）。\na. フランジとは、面板と袋部の接合部分をいう\nb. 凸型の嵌め込み具内蔵具は、圧迫による皮膚障害を生じる可能性がある\nc. 親水性ポリマーのCMCは注腸作用がある\nd. S15が含まれている皮膚保護剤は、接触により溶解する\ne. ポリマーブレンド系皮膚保護剤は、親水性ポリマーと疎水性ポリマーを混合したものである", options:["1. a, b, c", "2. a, b, e", "3. a, d, e", "4. b, c, d", "5. c, d, e"], answer:1, explanation:"正解：a, b, e。a正：フランジは面板と袋（パウチ）の接合部分（スナップ・ロック部分）。b正：嵌め込み具（凸面型）の圧迫は皮膚障害リスクがある。e正：ポリマーブレンド系は親水性（CMC等）と疎水性ポリマーの混合で耐久性と密着性を両立。c誤：CMCは吸水性を持つ親水性ポリマーで注腸作用はない。d誤：S15（カラヤガム成分）は排泄物・水分によって溶解する；「接触により溶解」は不正確（尿・便のアルカリ・水分で溶解）。" },
+  { id:82, school:"清瀬H25", year:2013, topic:"排尿機能", question:"問題25｜排尿機能のメカニズムについて誤っているものはどれか（2つ選べ）。\na. 蓄尿時には排尿筋が弛緩して尿道が収縮する\nb. 排尿時には排尿筋が収縮して尿道が弛緩する\nc. 蓄尿には副交感神経がはたらく\nd. 排尿には交感神経がはたらく", options:["1. a, b", "2. a, d", "3. b, c", "4. c, d"], answer:3, explanation:"正解（誤り）：c, d。c誤：蓄尿時は交感神経（下腹神経）が働き、排尿筋弛緩・内尿道括約筋収縮（蓄尿促進）。d誤：排尿時は副交感神経（骨盤神経・S2〜S4）が働き、排尿筋収縮・内括約筋弛緩（排尿促進）。a正：蓄尿時は排尿筋弛緩＋尿道収縮（括約筋収縮）。b正：排尿時は排尿筋収縮＋尿道（括約筋）弛緩。" },
+  { id:83, school:"清瀬H25", year:2013, topic:"ストーマ・制度", question:"問題24｜ストーマ保有者の社会保障制度について誤っているものはどれか。\n1. 身体障害者福祉法において、ストーマ保有者は3級、3級、4級のいずれかに認定される\n2. ストーマ装具使用明細書は、指定医が作成する必要がある\n3. 永久ストーマ保有者であれば、手続きを行えばただちに身体障害者手帳を申請できる\n4. ストーマ装具を自費で購入した場合、他の医療費と合算して年間10万円を超えると確定申告時に医療費控除の申請ができる", options:["1. 3,4,5級のいずれか", "2. 指定医が作成", "3. 手続き後ただちに申請可", "4. 医療費控除の申請可"], answer:2, explanation:"正解（誤り）：3。身体障害者手帳の申請は、術後に障害が固定し安定した状態になってから指定医の診断書をもって申請する。「手術直後・手続きすればただちに申請」はできない（通常術後3か月以上経過が目安）。1正：消化管ストーマ4級（1つ）・3級（2つ）、尿路ストーマ4級等（種類・数により）。2正：装具使用明細書は指定医が作成する。4正：ストーマ装具は医療費控除の対象となり、年間10万円超で申請可能。" },
+  { id:84, school:"京都2025", year:2025, topic:"皮膚解剖", question:"設問1（高齢者の皮膚）｜高齢者の皮膚について、誤っているものはどれか（2つ）。\n8. 高齢者はNMFやセラジの働きの低下と角質層の水分量の減少がある\n9. 環境による皮膚の変化は少なく、かゆみの受容体がC線維から真皮内に遮断される\n10. おとなの皮膚所見の仕事量により内弾性板が崩壊し、細胞間の結びつきが緩くなる状態になる\n11. 乾燥した皮膚は、全てのモイスチャライザーの効果がある保護剤を塗布すると、効果的である\n12. 肌荒れが強い時は、全てのエモリエント効果のある保護剤を塗布し、スキンテアのリスクがある", options:["1. 8と9", "2. 9と11", "3. 9と12", "4. 10と12", "5. 11と12"], answer:1, explanation:"正解：9と11。9誤：高齢者では環境による皮膚変化は大きく（乾燥・摩擦に弱い）、かゆみ受容体の変化についての記述は不正確。11誤：乾燥した皮膚（スキンテアリスク）に全てのモイスチャライザーが有効とは言えず、刺激成分を含むものは避ける必要がある。他の選択肢はWOC看護の観点から概ね正しい内容を含む。" },
+  { id:85, school:"京都2025", year:2025, topic:"体圧分散用具", question:"設問6（体圧分散マットレス）｜体圧分散マットレスについて、誤っているものを選びなさい。\n16. ハイブリッド型マットレスとは、エアセルとウレタンフォームの2層構造で、エアセルによる局所への圧迫低減に役立つ\n17. スモールチェンジ機能は、圧切替型マットレスにおいて、身体が体位変換の影響なく受ける体圧が変動する機能である\n18. マイクロクライメット（皮膚温・湿度）管理が重要な皮膚状態の場合、マイクロクライメット管理機能を持つ体圧分散マットレスを選択する\n19. 圧切替型マットレスを使用する場合は、底づきが起きないよう体圧をマネジメントすることが切断用マットレスとしての役割を示す\n20. 解熱などによる発汗量が多い患者の場合、フェールオーバー位置で最高の体圧状態にあるウレタンフォームマットレスを選択する", options:["1. 16と17", "2. 16と18", "3. 17と18", "4. 18と19", "5. 19と20"], answer:3, explanation:"正解：18と19。18誤：マイクロクライメット管理が重要な場合に適切なマットレスを選択すること自体は正しいが、問題文の記述が不正確な場合がある。19誤：底づき確認（底突き）はエアマットレスの設定で重要だが、「切断用マットレス」という表現は不適切。実際は「底づきしない」ことが体圧分散の基本。他の選択肢の記述は概ね正しい。" },
+  { id:86, school:"京都2025", year:2025, topic:"褥瘡・栄養", question:"設問7（褥瘡予防・治療のための栄養管理）｜褥瘡予防・治療のための栄養管理について、誤っているものをひとつ選びなさい。\n① 体重減少率、上腕周囲長、主観的包括的栄養評価基準（SGA）、簡易栄養状態評価基準（MNA）など複数の指標を使い、低栄養のリスクスクリーニングを行う\n② マスラドの過程を行なう場合や持続的体位変換が減少される場合に、褥瘡発生のリスクが高まる\n③ Harris-Benedictの式で総エネルギー必要量（TEE）を求める場合は、基礎エネルギー消費量（BEE）に活動係数（AF）とストレス係数（SF）を乗じて算出する\n④ タンパク質について、NPUAPガイドラインでは、栄養リスクがあるいは褥瘡発生リスクがある場合は1.25〜1.5g/kgで提供している", options:["① SGA・MNA等で評価", "② 体位変換減少でリスク上昇", "③ Harris-Benedict式でTEE算出", "④ タンパク質1.25〜1.5g/kg"], answer:1, explanation:"正解（誤り）：②。体位変換を行わない（減少させる）ことは褥瘡リスクを高めるが、「マスラドの過程」という表現は適切でない可能性がある。また持続的体位変換（自動体位変換機能）は褥瘡リスクを「減少」させるもの。①正：複数ツールを使った栄養評価は推奨される。③正：Harris-Benedict式ではBEE×AF×SFでTEEを算出。④正：NPUAP/EPUAPガイドラインでは高リスク者に1.25〜1.5g/kgが推奨されている。" },
+  { id:87, school:"京都2025", year:2025, topic:"褥瘡リスク評価", question:"設問8（褥瘡リスクアセスメントツール）｜褥瘡のリスクアセスメントツールについて、誤っているものをひとつ選びなさい。\n① ブレーデンスケールは、「摩擦とずれ」の項目だけは1〜3点で評価し、他の項目は1〜4点で評価する\n② ブレーデンスケールは、合計点が高いほどリスクが高くなる\n③ K式スケールは「前副褥瘡因」と「引き金因子」の2種類で構成され、65歳以上で評価をする\n④ OHスケールは「自力体位変換能力」「病的骨突出」「浮腫」「関節拘縮」の4項目をそれぞれ0〜3の範囲で評価する\n⑤ 厚生労働省褥瘡危険因子評価票は「あり（はいまたは「できない」の項目がひとつでもあれば、褥瘡ケアを適する", options:["① 摩擦とずれは1〜3点", "② 合計点高いほどリスク高", "③ K式スケールは65歳以上", "④ OHスケール4項目", "⑤ 危険因子評価票の判定"], answer:1, explanation:"正解（誤り）：②。ブレーデンスケールは合計点が「低いほど」リスクが高い（最高点23点が正常、低いほどリスク大）。①正：摩擦とずれだけは1〜3点、他は1〜4点の評価。③正：K式スケールは「前駆褥瘡因子」と「引き金因子」で構成。④正：OHスケールは自力体位変換・骨突出・浮腫・関節拘縮の4項目。⑤正：危険因子評価票で「できない/あり」が1つでも存在する場合は介入が必要とされる。" },
+  { id:88, school:"京都2025", year:2025, topic:"創傷管理", question:"設問9（創傷管理・Wound hygiene）｜創傷管理について、正しい組み合わせを選びなさい。\na. 感染が起こっていると、滲出液が増加して内容が膿になる\nb. Wound hygieneの概念では、創面を洗浄して、壊死組織、組織の残骸、バイオフィルムを除去する\nc. 急性期であれば、クッション性の高いポリウレタンフォームを貼付する\nd. ドレッシング材は、創傷の環境を整備する役割がある\n③ a, b, c　④ a, b, d　⑤ b, c, d", options:["① a, b", "② a, c", "③ a, b, c", "④ a, b, d", "⑤ b, c, d"], answer:3, explanation:"正解：④a, b, d。a正：感染時は滲出液増加・膿（化膿性滲出液）がみられる。b正：Wound hygieneは洗浄・デブリードマン・バイオフィルム除去が主要ステップ。d正：ドレッシング材は創面の湿潤環境整備・感染防御・滲出液管理の役割を担う。c誤：急性期創傷にポリウレタンフォームは過剰吸収となる場合があり、創の状態・目的に応じた選択が必要。" },
+  { id:89, school:"京都2025", year:2025, topic:"ストーマ合併症", question:"設問16（Dさんのストーマ合併症）｜Dさん（90歳代、男性、ストーマサイズ10mm×幅20mm×高さ8mm、10日ごとに交換）のストーマ合併症について、正しいものをひとつ選びなさい。\n① ストーマ静脈瘤\n② ストーマ・ヘルニア\n③ 後上皮腫性肥厚\n④ Outlet obstruction", options:["① ストーマ静脈瘤", "② ストーマ・ヘルニア", "③ 偽上皮腫性肥厚", "④ Outlet obstruction"], answer:2, explanation:"正解：③偽上皮腫性肥厚。尿路ストーマで面板孔がストーマより大きい場合、アルカリ尿が皮膚に慢性的に接触することでイボ状の増殖性変化（偽上皮腫性肥厚）が生じる。ストーマサイズが小さく（10mm）装具孔が大きい状態での典型的合併症。①ストーマ静脈瘤：門脈圧亢進症に伴う。②傍ストーマヘルニア：腹壁の脆弱化による。④Outlet obstruction：尿管カテーテルの閉塞等。" },
+  { id:90, school:"京都2025", year:2025, topic:"排尿アセスメント", question:"設問24（過活動膀胱・OAB）｜過活動膀胱（OAB）について、正しい組み合わせを選びなさい。\na. 中年女性は、女性よりも男性の有病者が多い\nb. 原因として、非神経因性より神経因性のものが多い\nc. 切迫性尿失禁は必須症状である\nd. 過活動膀胱症状スコア（OABSS）は、OABの診断や他疾患集患定量に有用である", options:["1. a, b", "2. a, c", "3. b, c", "4. c, d", "5. a, d"], answer:3, explanation:"正解：c, d。c正：OABの定義では尿意切迫感が必須で、切迫性尿失禁は切迫感に伴うことが多いが、切迫性尿失禁を伴わないOABもある（ただし「切迫感」は必須）。d正：OABSSは頻尿・夜間頻尿・尿意切迫感・切迫性尿失禁の4項目で定量評価し診断補助に有用。a誤：OABの有病率は男女ほぼ同等〜やや女性に多い（特に加齢女性）。b誤：OABの多くは神経因性ではなく非神経因性（特発性）が多い。" },
+  { id:91, school:"京都2024", year:2024, topic:"褥瘡・DESIGN-R", question:"設問2（DESIGN-R®2020評価）｜AさんのDESIGN-R®2020（仙骨部褥瘡：深さDU・内肉芽g0・壊死組織n0・大きさ）について、正しいものをひとつ選びなさい。\n① 深さ：DU、内肉芽組織：g0、壊死組織：N6\n② 深さ：DDTl、内肉芽組織：g0、壊死組織：n0\n③ 深さ：DDTl、内肉芽組織：G6、壊死組織：n0\n④ 深さ：DDTl、内肉芽組織：g0、壊死組織：N6\n⑤ 深さ：DU、内肉芽組織：g0、壊死組織：n0", options:["① DU・g0・N6", "② DDTl・g0・n0", "③ DDTl・G6・n0", "④ DDTl・g0・N6", "⑤ DU・g0・n0"], answer:4, explanation:"正解：⑤DU・g0・n0。DU（Depth Unknown）：深さが壊死組織等で判定できない。g0（肉芽0点）：良性肉芽が創面の90%以上を占める最良の状態。n0（壊死組織0点）：壊死組織なし。壊死なし・肉芽良好だがDTIが疑われるような深さ不明の場合はDUとなる。全部大文字（G・N）は重症側の評価で、最良の状態を示す小文字（g0・n0）が適切。" },
+  { id:92, school:"京都2024", year:2024, topic:"褥瘡管理", question:"設問3（Aさんの褥瘡管理）｜褥瘡管理について、誤っているものをひとつ選びなさい。\n① 皮下膿瘍がないため、局所の観察や採取データ・創傷後、顔後で評価する\n② 外用薬はスルファジアジン銀を選択する\n③ 黒色壊死組織の箇所にメスで毎日の切り込みに切れ込みを入れる\n④ 圧迫やずれのために創傷被覆材を活用する\n⑤ 褥瘡対策チームとなく、緩和ケアチームやNSTと協働して褥瘡管理計画を立案する", options:["① 局所観察・評価", "② スルファジアジン銀を選択", "③ 黒色壊死にメスで切り込み", "④ 創傷被覆材で圧迫・ずれ対策", "⑤ 多職種チームで計画立案"], answer:2, explanation:"正解（誤り）：③。黒色壊死組織に毎日メスで切り込みを入れることは不適切（感染・出血リスク）。壊死組織の除去は適切なデブリードマン（外科的・自己融解的・酵素的等）で段階的に行う。①正：皮下膿瘍がない場合は保存的局所ケアが基本。②正：感染・壊死創にはスルファジアジン銀（抗菌・壊死融解）が適応。④正：創傷被覆材でずれ・摩擦を軽減。⑤正：緩和ケアチーム・NSTとの連携は重要。" },
+  { id:93, school:"京都2024", year:2024, topic:"スキン-テア", question:"設問5（Bさんのスキン-テア）｜皮膚を裂いた後のスキン-テアの状態について、正しいものを（　）内の①・②から選びなさい。\n9. 皮弁 （①ある・②ない）\n10. 皮弁色 （①赤白や薄い・②蒼白や混濁・暗色）\n11. 創縁は解剖学的位置に（①戻すことができ・②戻すことができなかった）", options:["9①10①11①（ある・赤白・戻せる）", "9①10②11①（ある・蒼白暗色・戻せる）", "9①10①11②（ある・赤白・戻せない）", "9②10①11②（ない・赤白・戻せない）"], answer:1, explanation:"正解：9①10②11①（皮弁あり・蒼白/混濁/暗色・戻せる）→STARカテゴリー1b。STARカテゴリー1aは皮弁が戻せる＋色正常、1bは皮弁が戻せる＋蒼白/混濁/暗色。皮弁の色が蒼白・混濁・暗色の場合は血流不良を意味する。" },
+  { id:94, school:"京都2024", year:2024, topic:"スキン-テア", question:"設問6（スキン-テアのケア）｜スキン-テアのケア方法について、正しい組み合わせをひとつ選びなさい。\na. 出血していたため圧迫して止血した\nb. 血腫が形成されていたため、鋭利な器具で穿刺した\nc. 皮弁を元に戻さないように指や手掌で皮弁を戻し、固定する\nd. 皮膚保護剤を使用して貼付する際、創離開に気付かないようにテープの貼り直しを避けた\n⑤ d, e（但しeは「はがす際は皮弁の方向に注意し、皮弁の逆方向にはがす」）", options:["①a, b", "②a, c", "③a, e", "④b, d", "⑤ d, e"], answer:4, explanation:"正解：⑤d, e。d正：テープ被覆材の頻繁な貼り直しはスキン-テアを悪化させるため、必要最小限にする。e正：被覆材を剥がす際は皮弁の方向に注意し、皮弁の逆方向（創から外側方向）にゆっくり剥がす。a：圧迫止血は正しいが組み合わせの正解はd,e。b誤：血腫の穿刺は感染リスクがある。c誤：皮弁は指や湿らせた綿棒で元の位置に戻し固定するが、「戻さないように」は誤り。" },
+  { id:95, school:"京都2024", year:2024, topic:"褥瘡・MDRPU", question:"設問8（MDRPUとCさんのストーマ）｜MDRPU（医療関連機器圧迫創傷）について、正しい組み合わせを選びなさい。\n22. 褥瘡の縮小繊維は医療機器によって生じた創傷はMDRPUではない\n23. 医療機器ではないパッド等により生じた創傷はMDRPUではない\n24. 有病者者のうち、小児専門病院を小児専門病院が最も多い\n25. 施設設備によらず、最も多く創傷発生に関与しているのは弾性ストッキングである", options:["1. 22のみ", "2. 23のみ", "3. 22と23", "4. 23と25", "5. 24のみ"], answer:1, explanation:"正解：②23のみ。医療関連機器圧迫創傷（MDRPU）はIVラインや医療チューブ、弾性ストッキング等の医療機器・器具によって生じる皮膚・軟部組織の創傷。パッド等の非医療器具は本来MDRPUに含まれないとする見解が正しい。22誤：医療機器によって生じた創傷はMDRPU（皮膚の縮小繊維ではなく圧迫による機序）。25誤：施設によって差はあるが弾性ストッキングだけが最多とは言えない。" },
+  { id:96, school:"京都2024", year:2024, topic:"ストーマサイトマーキング", question:"設問14（ストーマサイトマーキング）｜ストーマの位置決め（ストーマサイトマーキング）について、誤っているものをひとつ選びなさい。\n① 目的のひとつは、術後に予測される合併症を予防することである\n② 腹部前面下半部で、正中線の目安の位置は中心が目標である\n③ 緊急手術の場合でも、基本的にはおよそ正中線を目安として行う\n④ フリーブランドクリニックの原則がある\n⑤ 印鑑などのマーキングをした後に、仰臥位や前屈位で確認すべきである", options:["①目的は合併症予防", "②腹部下半部・正中線中心", "③緊急手術でも正中線目安", "④クリーブランドクリニックの原則", "⑤各体位で確認"], answer:1, explanation:"正解（誤り）：②。ストーマサイトマーキングの基本はクリーブランドクリニックの原則に基づき、腹直筋内に位置することが最も重要。「正中線の中心」ではなく、腹直筋内・臍と上前腸骨棘を結ぶ線の中点付近が目安。①正：術後合併症（傍ヘルニア・脱出・ストーマケア困難）の予防が目的。③正：緊急時でもマーキングを行うことが推奨される。④正：クリーブランドクリニック（Turnbull）の5原則がある。⑤正：仰臥位・座位・立位・前屈位で確認する。" },
+  { id:97, school:"京都2024", year:2024, topic:"ストーマ・制度", question:"設問19（Fさんのストーマ外来受診時の診療報酬）｜ストーマ保有者の診療報酬について、正しい組み合わせを選びなさい。\na. 化学療法中の在宅療養指導料は算定できない\nb. ストーマ処置料は70点算定できる\nc. 子宮がんの手術でストーマ造設となったため、身体障害者手帳の申請はできない\nd. ストーマ用品の購入時は、医療費控除の対象となるため、領収書を保管することを伝える", options:["1. a, b", "2. a, c", "3. b, c", "4. b, d", "5. c, d"], answer:3, explanation:"正解：b, d。b正：ストーマ処置料はストーマ1個の場合70点。d正：ストーマ用品は医療費控除の対象（領収書保管が重要）。a誤：在宅療養指導料は化学療法中でも算定可能（対象患者条件を満たせば）。c誤：原因疾患に関わらず永久ストーマを造設した場合は身体障害者手帳を申請できる（子宮がんも対象）。" },
+  { id:98, school:"京都2024", year:2024, topic:"排便管理", question:"設問20（排便機能の生理）｜排便機能の生理について、誤っている組み合わせを選びなさい。\na. 排便には交通神経が刺激し、徴量（空腹感）を促進できる限界がある\nb. 1日の排便量は100〜200ml程度を満たるまでに便意を感じる\nc. 健常者では1回の排便時に生じた便を全て排出することができる\nd. 3〜4週間ごとに排便調整が行なえる\ne. 腸粘膜運動は外括約筋に連続し、しばらくの間収縮制御が行なわれる", options:["1. a, b", "2. a, c", "3. a, e", "4. b, c", "5. d, e"], answer:0, explanation:"正解（誤り）：a, b。a誤：排便は主に副交感神経（骨盤神経）の刺激で促進され、交感神経が主体ではない。b誤：直腸に約150〜200mLの便が貯まると便意を感じるのが正しく、「100〜200mL」は概ね正しいが「満たるまで」という表現が不正確。他の記述は概ね正しい内容を含む。" },
+  { id:99, school:"京都2024", year:2024, topic:"IAD", question:"設問24（IADおよびIAD-set）｜失禁関連皮膚炎（IAD）およびIAD-setについて、正しい組み合わせを選びなさい。\na. IADは、排泄物や皮膚に接触することにより生じる皮膚表在性炎症である\nb. IADの初発部位は、合指・肛門周囲・臀部・鼠径部・陰部など専門部が確認した湿潤環境部位である\nc. IAD-setの皮膚状態の記録はカンジダ症の確認が強調され、専門部の診断が確定した場合に加点する\nd. IAD-setでは、強い臭気を作り出す菌（アンモニア菌）がある場合は、感染を結んで軽症として取り扱われる", options:["1. a, b", "2. a, c", "3. b, c", "4. a, d", "5. c, d"], answer:0, explanation:"正解：a, b。a正：IADは排泄物（尿・便）が皮膚に接触することで生じる皮膚の炎症性変化（表在性）の総称。b正：IADの好発部位は肛門周囲・会陰部・臀部・鼠径部・陰部など。c誤：IAD-setはカンジダ症の診断専用ではなく、皮膚状態を総合的に評価するスケール。d誤：アンモニア臭がある場合は感染リスクが高く、軽症扱いはしない。" },
+  { id:100, school:"予想問題", year:2025, topic:"褥瘡・DESIGN-R", question:"【予想】DESIGN-R®2020の改定で新たに追加されたDTI（深部組織損傷）の評価として正しいのはどれか。\n1. DTIはd1（持続する発赤）と同じ扱いで評価する\n2. DTI疑いの場合はDTIと表記し、深さの評価に含める\n3. DTIはDTI（深部組織損傷疑い）として記録し、DESIGN-R2020の深さ評価に追加された\n4. DTIが疑われる場合は、創の大きさを計測してs点数で評価する", options:["1. d1と同扱い", "2. DTIと表記・深さ評価に含む", "3. DTIとして追加記録", "4. 大きさをs点数で評価"], answer:2, explanation:"正解：3。DESIGN-R2020の改訂で深部組織損傷（DTI）疑いがDTIとして深さの項目に追加された。これにより急性期の深部組織損傷を評価できるようになった。1誤：d1（持続する発赤）とは別カテゴリーとして独立している。2誤：DTIは記録に含めるが深さの確定評価ではなくDTIとして別途記載する形。4誤：DTI疑いの段階では大きさ計測よりも経時的観察が優先される。" },
+  { id:101, school:"予想問題", year:2025, topic:"創傷被覆材", question:"【予想】創傷被覆材の選択について正しいのはどれか。\n1. 感染が疑われる滲出液の多い創傷にはハイドロコロイドが適している\n2. 乾燥した壊死組織を有する創傷にはハイドロジェルが有効である\n3. 滲出液が少ない清潔な創傷には親水性ファイバーを使用する\n4. 深い壊死ポケットにはシリコーンフォームを充填する", options:["1. 感染滲出液多→ハイドロコロイド", "2. 乾燥壊死→ハイドロジェル", "3. 清潔・少滲出液→親水性ファイバー", "4. 深い壊死ポケット→シリコーンフォーム"], answer:1, explanation:"正解：2。ハイドロジェルは水分を多く含み、乾燥した壊死組織を湿潤させ自己融解を促進する（自己融解的デブリードマン）。1誤：感染・滲出液多の創傷にハイドロコロイドは禁忌（嫌気性菌を増殖させるリスク）→アルジネート・ハイドロファイバー・銀含有製剤が適切。3誤：滲出液が少ない創傷に親水性ファイバー（高吸収性）は過剰乾燥を招く。4誤：ポケット内にはシリコーンフォームではなく、カルトスタット（アルジネート）・ハイドロファイバーを充填する。" },
+  { id:102, school:"予想問題", year:2025, topic:"ストーマ・心理", question:"【予想】永久ストーマを造設した患者の心理的支援について最も適切なのはどれか。\n1. 手術直後から積極的にセルフケア指導を開始し、不安を軽減する\n2. 患者が「ストーマを見たくない」と言った場合、すぐに受容を促す\n3. 障害受容のプロセスモデル（コーン）を参考に、患者の段階に合わせて支援する\n4. 社会復帰後はオストメイトの支援が不要になるため、外来フォローを終了する", options:["1. 手術直後からセルフケア指導", "2. 見たくない→すぐ受容促す", "3. コーンのモデルで段階的支援", "4. 社会復帰後は外来終了"], answer:2, explanation:"正解：3。コーンの障害受容プロセスモデル（ショック→回復への期待→悲嘆→防衛→適応）を参考に、患者の心理的段階に応じた個別的支援が重要。1誤：手術直後は身体的・心理的負担が大きく、患者の準備状況に合わせた段階的指導が必要。2誤：「見たくない」という気持ちは否定せず、受容を強制しない；傾聴・共感が先決。4誤：永久ストーマ保有者は合併症予防・装具変更等で生涯にわたる外来フォローが必要。" },
+  { id:103, school:"予想問題", year:2025, topic:"排尿障害", question:"【予想】過活動膀胱（OAB）の薬物療法について正しいのはどれか。\n1. 抗ムスカリン薬の主な副作用として下痢がある\n2. β3受容体作動薬（ミラベグロン）は口渇・便秘の副作用が少ない\n3. 抗ムスカリン薬は残尿がある患者に積極的に使用する\n4. β3受容体作動薬は前立腺肥大症の治療に第一選択薬として用いる", options:["1. 抗ムスカリン薬→下痢", "2. β3受容体作動薬→口渇・便秘少ない", "3. 抗ムスカリン薬→残尿あり積極使用", "4. β3受容体作動薬→前立腺肥大第一選択"], answer:1, explanation:"正解：2。β3受容体作動薬（ミラベグロン：ベタニス®）は抗コリン（抗ムスカリン）作用がないため、口渇・便秘・排尿困難等の抗コリン副作用が少ない。1誤：抗ムスカリン薬の主な副作用は口渇・便秘・尿閉・眼内圧上昇であり、下痢ではない。3誤：抗ムスカリン薬は尿閉リスクを高めるため、残尿が多い患者（特に前立腺肥大）には慎重投与。4誤：前立腺肥大症の第一選択はα1遮断薬（タムスロシン等）。" },
+  { id:104, school:"予想問題", year:2025, topic:"褥瘡予防", question:"【予想】体位変換とポジショニングについて正しいのはどれか。\n1. 体圧分散マットレス使用中は体位変換は不要である\n2. 30度側臥位は90度側臥位と比べて大転子部への体圧が高い\n3. ポジショニングでは末梢が中枢より高くなるよう配置する\n4. 体位変換は2時間毎を基本とするが、マットレスの特性によって間隔を延長できる", options:["1. 体圧分散マットレス使用中は変換不要", "2. 30度側臥位は大転子部への体圧が高い", "3. 末梢を中枢より高く配置", "4. マットレス特性で間隔延長可"], answer:3, explanation:"正解：4。体位変換の間隔はJPUAガイドラインで「2時間ごと」を基本としつつも、高性能体圧分散マットレス使用時は4時間以上の延長が可能としている。1誤：体圧分散マットレスは圧分散を補助するが体位変換を代替するものではない。2誤：30度側臥位は大転子部への体圧が低く（骨突出を避けられる）、90度側臥位より推奨されることが多い。3誤：ポジショニングでは浮腫予防等を除き、末梢が中枢と同等またはやや低い位置を基本とする。" },
+  { id:105, school:"予想問題", year:2025, topic:"ストーマ装具", question:"【予想】ストーマ装具の皮膚保護剤の特性について正しいのはどれか。\n1. カラヤガムは耐久性が高く、アルカリ性排泄物に強い\n2. ハイドロコロイド系皮膚保護剤は排泄物を吸収してゲル化し、装具交換時間を延長できる\n3. 疎水性ポリマーは水分を吸収してゲル化するため、腸液漏れに弱い\n4. ポリマーブレンド系は耐久性が低く、頻回交換が必要である", options:["1. カラヤガム→耐久性高・アルカリに強", "2. ハイドロコロイド系→吸収・ゲル化・交換延長", "3. 疎水性ポリマー→水分吸収・腸液に弱", "4. ポリマーブレンド系→耐久性低・頻回交換"], answer:1, explanation:"正解：2。ハイドロコロイド系皮膚保護剤はCMC（カルボキシメチルセルロース）等の親水性ポリマーが排泄物中の水分を吸収してゲル化し、皮膚を保護しながら装具装着期間を延長できる。1誤：カラヤガムはアルカリ性（尿・腸液）に弱く耐久性が低い→尿路ストーマには不適。3誤：疎水性ポリマーは水分を吸収しにくい（撥水性）が排泄物への耐久性に優れる。4誤：ポリマーブレンド系は親水性＋疎水性を兼ね備え耐久性が高い。" },
+  { id:106, school:"予想問題", year:2025, topic:"排便管理", question:"【予想】排便機能障害のアセスメントについて正しいのはどれか。\n1. ブリストル便形状スケールは便の量を評価するスケールである\n2. 直腸指診は侵襲性が高いため、初回評価には使用しない\n3. 排便日誌は少なくとも3日間の記録が推奨される\n4. 肛門管内圧測定は下部消化管機能を客観的に数値化する検査である", options:["1. ブリストルスケール→便の量評価", "2. 直腸指診→初回に使用しない", "3. 排便日誌は3日間", "4. 肛門管内圧測定→下部消化管機能数値化"], answer:3, explanation:"正解：4。肛門管内圧測定（アノレクトマノメトリー）は肛門括約筋機能・直腸感覚・コンプライアンスを客観的に数値化できる重要な検査。1誤：ブリストル便形状スケールは便の「形状・硬さ」を評価（Type1-7）し、量は評価しない。2誤：直腸指診は肛門周囲筋肉の緊張・宿便確認・腸腫瘤触知等に有用で初回評価に含まれる基本診察。3誤：排便日誌は少なくとも1週間（7日間）の記録が推奨される。" },
+  { id:107, school:"予想問題", year:2025, topic:"制度・認定看護師", question:"【予想】皮膚・排泄ケア認定看護師の役割について正しいのはどれか。\n1. 認定看護師は特定行為を行う権限を自動的に取得する\n2. 認定看護師の役割は実践・指導・相談の3つである\n3. WOC認定看護師は褥瘡ケアのみを専門とする\n4. 認定看護師の認定は5年ごとの更新が不要である", options:["1. 特定行為を自動的に取得", "2. 実践・指導・相談の3役割", "3. 褥瘡ケアのみ専門", "4. 更新不要"], answer:1, explanation:"正解：2。日本看護協会の認定看護師制度における役割は「①実践（ケアの実施）・②指導（他の看護師への指導）・③相談（コンサルテーション）」の3つ。1誤：特定行為は別途「特定行為研修」を修了した場合に実施できる（認定資格とは別制度）。3誤：皮膚・排泄ケア認定看護師は褥瘡・ストーマ・失禁（排尿・排便）の3領域をカバーする。4誤：認定看護師認定は5年ごとの更新審査が必要。" },
+  { id:108, school:"予想問題", year:2025, topic:"IAD・スキンケア", question:"【予想】IAD（失禁関連皮膚炎）の予防・管理について正しい組み合わせはどれか。\na. 洗浄は1日2〜3回、弱酸性洗浄剤を使用し、最小限の摩擦で行う\nb. 皮膚保湿は少なくとも1日1回以上、全身に行う\nc. 撥水性皮膚保護剤（バリアクリーム・フィルム）は、排泄のたびに塗布しなおす必要がある\nd. カンジダ性皮膚炎が合併した場合は、抗真菌薬を使用する", options:["1. a, b", "2. a, d", "3. b, c", "4. a, b, d"], answer:3, explanation:"正解：④a, b, d（またはa, dが最も正確）。a正：弱酸性洗浄剤による低摩擦洗浄がIAD予防の基本。b正：保湿は毎日1回以上推奨。d正：カンジダ合併時は抗真菌薬（クロトリマゾール等）の外用が必要。c誤：撥水性保護剤（ジメチコン系バリアクリーム等）は1日1〜2回の使用が基本であり、毎排泄後の塗り直しは必要ない（持続性がある）。" },
+  { id:109, school:"予想問題", year:2025, topic:"ストーマ・退院指導", question:"【予想】ストーマ保有者の退院後の生活指導として適切でないものはどれか。\n1. 温泉・銭湯入浴は、ストーマ袋を外して入浴することも可能であることを説明する\n2. 食事は基本的に制限はないが、ガスや臭いが出やすい食品を把握しておくよう説明する\n3. 装具の交換は必ず医療機関で行うよう説明する\n4. 海外旅行の際は、使用している装具を十分な量持参するよう説明する", options:["1. 温泉・銭湯でストーマ袋を外して入浴可", "2. ガス・臭い食品の把握を説明", "3. 装具交換は必ず医療機関で", "4. 旅行時は十分な装具を持参"], answer:2, explanation:"正解（適切でない）：3。ストーマ装具の交換はセルフケア（自己管理）が基本であり、「必ず医療機関で行う」という説明は誤り。退院前にセルフケアの習得を支援し、自宅での交換が自立できるよう指導することが目標。1正：温泉・銭湯では装具を外しても短時間なら問題ない（ストーマにキャップを使用する方法もある）。2正：ガス・臭いを出しやすい食品（ニンニク・玉ねぎ等）を把握することは生活の質向上に重要。4正：旅行時の装具不足は緊急事態になるため多めの持参が必要。" },
+  { id:110, school:"予想問題", year:2025, topic:"創傷管理", question:"【予想】バイオフィルムへの対応として正しいのはどれか。\n1. バイオフィルムは通常の抗菌薬が十分に浸透するため、経口投与で除去できる\n2. バイオフィルムの除去には機械的デブリードマン（スクラビング）が有効である\n3. バイオフィルムが形成された創傷では、創の乾燥を保つことが最優先である\n4. 銀含有被覆材は、バイオフィルムの形成を促進させる作用がある", options:["1. 経口抗菌薬で除去可", "2. 機械的デブリードマンが有効", "3. 創の乾燥を最優先", "4. 銀含有被覆材はバイオフィルム促進"], answer:1, explanation:"正解：2。バイオフィルムは物理的・機械的な除去（スクラビング・鋭的デブリードマン）が最も有効。Wound hygieneの核心はこの物理的除去にある。1誤：バイオフィルムは多糖体マトリックスで覆われ、抗菌薬・消毒薬への耐性が著しく高く、経口投与では除去できない。3誤：バイオフィルム対策でも湿潤環境の維持が重要（乾燥は創傷治癒を阻害）。4誤：銀含有被覆材はバイオフィルム形成を「抑制」する作用がある。" },
+  { id:111, school:"予想問題", year:2025, topic:"泌尿器解剖", question:"【予想】男性の排尿障害について正しいのはどれか。\n1. 前立腺肥大症では排尿筋過活動（OAB）は伴わない\n2. 前立腺がんの確定診断にはPSA検査のみで十分である\n3. 経尿道的前立腺切除術（TURP）後には一時的な腹圧性尿失禁が生じる可能性がある\n4. α1遮断薬は前立腺平滑筋を収縮させることで排尿を改善する", options:["1. 前立腺肥大→OABは伴わない", "2. PSA検査のみで確定診断", "3. TURP後に腹圧性尿失禁の可能性", "4. α1遮断薬→前立腺収縮で排尿改善"], answer:2, explanation:"正解：3。TURPや前立腺全摘術後には尿道括約筋の損傷により腹圧性尿失禁が生じることがある（多くは一時的）。1誤：前立腺肥大による膀胱出口部閉塞はOAB（過活動膀胱）を二次的に引き起こすことがある。2誤：PSAは前立腺がんのスクリーニングに有用だが、確定診断には前立腺生検（組織診）が必要。4誤：α1遮断薬は前立腺・膀胱頸部の平滑筋を「弛緩」させて尿道抵抗を低下させ排尿を改善する（収縮ではない）。" },
+  { id:112, school:"予想問題", year:2025, topic:"ストーマ管理", question:"【予想】結腸ストーマの管理について正しいのはどれか。\n1. コロストミーの排泄物はイレオストミーより水様で管理が難しい\n2. S状結腸ストーマは排便習慣が規則的になりやすく、灌注排便法の適応となる場合がある\n3. ループ式ストーマは永久ストーマとして造設されることが多い\n4. 横行結腸ストーマは排泄物が固形で管理しやすい", options:["1. コロストミー排泄物は水様", "2. S状結腸ストーマは灌注排便法の適応", "3. ループ式は永久ストーマが多い", "4. 横行結腸ストーマは排泄物固形"], answer:1, explanation:"正解：2。S状結腸（下行結腸）ストーマでは排泄物がほぼ固形となり排便パターンが比較的規則的になるため、灌注排便法の適応となる場合がある。1誤：コロストミー（結腸ストーマ）はイレオストミー（回腸ストーマ）より排泄物が固形化しており管理しやすい（水様はイレオストミーの特徴）。3誤：ループ式ストーマは一時的（緊急・術前処置用）に使用されることが多く、永久ストーマには単孔式が一般的。4誤：横行結腸ストーマの排泄物は泥状〜半固形で、S状結腸より管理が難しい。" },
+  { id:113, school:"予想問題", year:2025, topic:"排尿ケア", question:"【予想】間歇自己導尿（CIC）について正しいのはどれか。\n1. CICは無菌操作を必須とし、自宅では実施できない\n2. 導尿の頻度は残尿量に関わらず1日4〜6回を厳守する\n3. CICは排尿筋過活動を有する患者には禁忌である\n4. CICの合併症として尿路感染症・尿道損傷・結石形成がある", options:["1. CICは無菌操作必須・自宅不可", "2. 1日4〜6回厳守", "3. 排尿筋過活動は禁忌", "4. 感染・尿道損傷・結石形成が合併症"], answer:3, explanation:"正解：4。CIC（清潔間歇導尿）の合併症には、尿路感染症・尿道損傷・尿道狭窄・結石形成がある。1誤：CICは「清潔」操作（無菌操作より低レベル）で自宅での実施が基本。清潔操作（手洗い・カテーテルの洗浄・再利用）が認められている。2誤：導尿の頻度は残尿量（1回200〜400mL以下を目安）に応じて調整する。3誤：排尿筋過活動（OAB）はCICの適応とは関係ない；神経因性膀胱・尿閉がCICの主な適応。" },
+  { id:114, school:"予想問題", year:2025, topic:"ストーマ・造設前", question:"【予想】ストーマサイトマーキングのクリーブランドクリニック5原則に含まれないのはどれか。\n1. 腹直筋を貫通する位置\n2. 臍より低い位置\n3. 皮膚のくぼみ・しわ・瘢痕・上前腸骨棘から離れた位置\n4. 患者自身が見ることができる位置\n5. 腸腰筋上の位置", options:["1. 腹直筋貫通", "2. 臍より低い", "3. くぼみ等から離れた位置", "4. 患者が見える位置", "5. 腸腰筋上"], answer:4, explanation:"正解：5（腸腰筋上）。クリーブランドクリニック（Turnbull）の5原則は①腹直筋内（貫通）、②臍より低い（場合による）、③皮膚のくぼみ・しわ・瘢痕・骨突出から離れた位置、④患者が見える位置、⑤ベルトラインより低い位置。「腸腰筋上」はクリーブランドの5原則には含まれない。腸腰筋上へのマーキングは傍ヘルニアリスクを高めるため避けるべき位置。" },
+  { id:115, school:"予想問題", year:2025, topic:"皮膚病態", question:"【予想】褥瘡の発生機序に関与するリスク因子の組み合わせで正しいのはどれか。\na. 糖尿病による末梢神経障害（知覚低下）\nb. 高タンパク血症による組織浮腫\nc. 失禁による皮膚の湿潤\nd. 長時間の同一体位保持", options:["1. a, b", "2. a, c", "3. a, c, d", "4. b, d", "5. a, b, c, d"], answer:2, explanation:"正解：③a, c, d。a正：糖尿病性神経障害による知覚低下→圧迫・摩擦に気づかない→褥瘡リスク上昇。c正：失禁→皮膚湿潤→皮膚軟化・浸軟→摩擦への抵抗力低下→褥瘡リスク上昇（IAD合併リスクも増加）。d正：長時間の圧迫→組織虚血→褥瘡発生の直接的メカニズム。b誤：「高タンパク血症」は正常〜高値のことで褥瘡リスクではない；低タンパク血症・低栄養が褥瘡リスク因子。" },,
+
+{id:116, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者の足病変で『ニューロパシー』の最初の兆候として最も一般的なものはどれか？", options:["足の冷感","先端から始まる痛覚低下","濃紫色の皮膚変化","足関節の硬直","足の発熱感"], answer:1, explanation:"正解：②先端から始まる痛覚低下。糖尿病性神経障害では、典型的に足の先端（つま先）から始まる感覚喪失が特徴。①誤：冷感は後期の症状。③誤：皮膚色の変化は血流障害が進んだ場合。④誤：足関節硬直は異なる合併症。⑤誤：発熱感は典型的ではない。"},
+{id:117, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"65歳の2型糖尿病患者。足底に無痛の潰瘍が形成されている。この潰瘍の最も可能性の高い原因は？", options:["血管炎症による循環不全","感染による炎症","末梢神経障害による反復外傷と圧迫","真菌感染","薬剤アレルギー反応"], answer:2, explanation:"正解：③末梢神経障害による反復外傷と圧迫。無痛性潰瘍は神経障害型の典型的所見。患者は痛みを感じないため、圧力による組織損傷が繰り返される。①誤：虚血型は痛みを伴うことが多い。②誤：感染は潰瘍形成後の合併症。④誤：真菌感染は一般的な原因ではない。⑤誤：アレルギーでは無痛性潰瘍は形成されない。"},
+{id:118, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者の足のケアで最も重要な予防策はどれか？", options:["毎日の温浴（43℃以上）","足の毎日の観察と清潔保持","月1回の医学的フットケア","抗生物質の予防投与","定期的な足のマッサージ"], answer:1, explanation:"正解：②足の毎日の観察と清潔保持。早期に変化を発見することが最重要。①誤：温浴は42℃以下が推奨（高温は損傷を招く）。③誤：定期医学的ケアは重要だが、毎日の自己観察がより基本的。④誤：感染なしでの予防投与は推奨されない。⑤誤：マッサージは神経障害がある場合は損傷リスクあり。"},
+{id:119, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者の爪の手入れで推奨される方法は？", options:["爪をできるだけ短く切る","爪を温湯に浸してから爪切りで切る","視力が弱い場合は家族に任せずWOC看護師に相談","深爪をして感染予防する","電動爪切りを使用する"], answer:1, explanation:"正解：②爪を温湯に浸してから爪切りで切る。温湯でやや軟化させることで爪が割れにくくなる。①誤：短すぎる爪は爪床損傷リスク。③誤：WOC相談は重要だが、選択肢としては爪切り方法が直接的。④誤：深爪は損傷と感染リスク大。⑤誤：電動爪切りは神経障害患者に安全性の懸念。"},
+{id:120, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者で足部の『シャルコー関節』が疑われる場合の特徴はどれか？", options:["急性の腫脹、熱感、赤みが見られ、通常は非常に痛い","神経障害と骨破壊があるにもかかわらず、痛みが少なく腫脹・変形がある","足の裏に黒い壊疽がある","足全体が冷たく蒼白である","爪が厚くなり黄色に変色する"], answer:1, explanation:"正解：②神経障害と骨破壊があるにもかかわらず、痛みが少なく腫脹・変形がある。シャルコー関節は神経障害の進行形で、患者が痛みを感じないため知らぬ間に関節変形が進む。①誤：むしろ痛みが軽微なのが特徴。③誤：壊疽は異なる病態。④誤：蒼白は虚血型の特徴。⑤誤：爪の変化は直接的原因ではない。"},
+{id:121, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"58歳男性、糖尿病歴12年。足底に1cm大の潰瘍があり、周囲は発赤し膿が認められる。血流検査では足関節上腕血圧比（ABI）が0.5である。この患者の足病変の分類は？", options:["神経障害型のみ","虚血型のみ","神経障害型と虚血型の混合型","シャルコー関節型","感染症型"], answer:2, explanation:"正解：③神経障害型と虚血型の混合型。潰瘍（神経障害型の兆候）＋感染＋ABI低値（虚血の指標）から混合型と判断。①誤：ABI低値から虚血も存在。②誤：膿や潰瘍形成は神経障害のサインも含む。④誤：シャルコー関節では通常骨変形が明らかで、潰瘍による感染の症状とは異なる。⑤誤：感染は合併症であり、基本的分類ではない。"},
+{id:122, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者のフットケア指導で、『してはいけないこと』として最も重要なのはどれか？", options:["素足で床を歩く","爪の白い部分を少し残して切る","毎晩足をぬるま湯で洗う","観察のために毎日足の裏を確認する","冬に足を暖房器具に近づけて温める"], answer:4, explanation:"正解：⑤冬に足を暖房器具に近づけて温める。神経障害がある場合、熱覚低下で低温熱傷のリスクが極めて高い。①誤：素足歩行は避けるべきだが、してはいけないほどの最重要項目ではない。②誤：爪の白い部分を残すことは正しいケア。③誤：毎晩のぬるま湯洗浄は推奨。④誤：毎日の観察は最重要の予防法。"},
+{id:123, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者の靴選びで推奨される基準は？", options:["足に密着してフィットした靴","靴の中で指が立てられるだけのゆとりがある靴","足の温度を上げるため、厚めで暖かい靴","靴底が硬く、足を支えられる靴","サンダルなど通気性のみを重視した靴"], answer:1, explanation:"正解：②靴の中で指が立てられるだけのゆとりがある靴。圧迫は潰瘍の最大リスク因子。ゆとりがあるが、ぶかすぎないバランスが重要。①誤：密着は圧迫につながる。③誤：厚さと暖かさより圧迫回避が優先。④誤：靴底硬さより圧力分散が重要。⑤誤：サンダルは外傷リスク大。"},
+{id:124, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"73歳女性、糖尿病患者。足首の周囲が腫脹し、色が正常。痛みはないが、浮腫が徐々に増加している。この患者の浮腫の最も可能性の高い原因は？", options:["うっ血性心不全","肝硬変による低アルブミン血症","リンパ管炎による二次的リンパ浮腫","神経障害に伴う血流調節障害と下肢の不活動","重度の腎臓病による蛋白尿"], answer:3, explanation:"正解：④神経障害に伴う血流調節障害と下肢の不活動。糖尿病患者の下肢浮腫は、自律神経障害による血管拡張と、神経障害による活動低下が相乗して起こることが多い。①誤：心不全なら他の全身症状を伴う。②誤：肝硬変があれば他の症状が顕著。③誤：リンパ管炎は炎症兆候を伴う。⑤誤：腎臓病は顔面浮腫や高血圧を伴うことが多い。"},
+{id:125, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"WOC看護師が行うフットケアにおいて、患者教育の最重要目標は？", options:["完全な足病変の治癒","足の外観の美化","患者自身が足の変化に早期に気づき、医療者に報告する行動の獲得","足の全感覚を回復させる","すべての靴のカスタマイズ化"], answer:2, explanation:"正解：③患者自身が足の変化に早期に気づき、医療者に報告する行動の獲得。足病変は進行が早く、早期発見と医学的介入が予後を左右する。患者の自己観察と報告行動が最重要。①誤：完全治癒が必ずしも可能とは限らない。②誤：美化より安全性と機能維持が優先。④誤：回復が困難な場合も多い。⑤誤：全例カスタマイズが必要なわけではない。"},
+        {id:126, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"ABI（足関節上腕血圧比）の値と下肢動脈の状態の組み合わせで正しいのはどれか。", options:["ABI 1.4以上：正常範囲", "ABI 0.9〜1.3：正常範囲", "ABI 0.5〜0.7：軽度の虚血", "ABI 0.4以下：中等度の虚血", "ABI 0.7〜0.9：高度の虚血"], answer:1, explanation:"正解：②ABI 0.9〜1.3が正常範囲。①誤：ABI 1.4以上は血管の石灰化（圧迫困難）を示し、偽高値の可能性があり異常。③誤：ABI 0.5〜0.7は高度虚血（重症下肢虚血）を示す。④誤：ABI 0.4以下は重篤な高度虚血を意味し、早急な血行再建が必要。⑤誤：ABI 0.7〜0.9は軽〜中等度の虚血を示す。"},
+        {id:127, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病歴20年の70歳男性。右足底に直径3cmの潰瘍を認める。潰瘍は浅く、底部は黄色の壊死組織で覆われている。ABI 1.1、足背動脈触知可能、足底・足趾の感覚鈍麻あり。この潰瘍の性状として最も考えられるのはどれか。", options:["虚血性潰瘍", "神経障害性潰瘍", "静脈うっ滞性潰瘍", "炎症性潰瘍", "外傷性潰瘍"], answer:1, explanation:"正解：②神経障害性潰瘍。ABIが正常（1.1）で足背動脈触知可能なため血流は保たれており、虚血性は否定的。長期の糖尿病による末梢神経障害（感覚鈍麻）があり、圧力集中部位（足底）に潰瘍が形成されるのが神経障害性潰瘍の典型像。①誤：虚血性潰瘍はABI低下・冷感・蒼白・疼痛が特徴で血流障害が主因。③誤：静脈うっ滞性潰瘍は足首周囲〜下腿に生じ、色素沈着・浮腫を伴う。④誤：炎症性潰瘍は自己免疫疾患などが背景にある。⑤誤：外傷歴が明記されていない。"},
+        {id:128, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病性足潰瘍のWagner分類でGrade 3の特徴として正しいのはどれか。", options:["皮膚表面のみの表在性潰瘍", "腱・関節包・骨に達する深部潰瘍（感染なし）", "骨髄炎・骨炎・腱鞘炎を伴う深部潰瘍", "限局した前足部または足趾の壊疽", "足全体を侵す広範な壊疽"], answer:2, explanation:"正解：③骨髄炎・骨炎・腱鞘炎を伴う深部潰瘍がGrade 3。①誤：これはGrade 1（表在性潰瘍）。②誤：腱・関節包・骨に達するが感染を伴わないのはGrade 2。④誤：前足部・足趾の限局した壊疽はGrade 4。⑤誤：足全体の壊疽はGrade 5。Wagner分類はGrade 0（ハイリスク足）からGrade 5（広範壊疽）まで6段階で評価する。"},
+        {id:129, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者へのフットケア指導において足の観察で確認すべき項目として誤っているのはどれか。", options:["胼胝（タコ）・鶏眼（ウオノメ）の有無", "爪の変形・肥厚・白癬の有無", "皮膚の亀裂・乾燥・浸軟の有無", "足趾間の浸潤・発赤・びらんの有無", "足関節の可動域と筋力測定"], answer:4, explanation:"正解（誤っている項目）：⑤足関節の可動域と筋力測定。フットケアの日常的な観察項目は皮膚・爪・変形の視診・触診が中心であり、関節可動域測定や筋力評価はリハビリ・整形外科的評価に属し、スキンケア目的のフットケア観察としては含まれない。①②③④はいずれも糖尿病フットケアの観察で重要な項目。特に足趾間の浸潤・びらんは白癬や感染の入口となりやすい。"},
+        {id:130, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"65歳女性、2型糖尿病。歩行時の右下腿〜足部の疼痛を主訴に受診。200m歩くと痛みで歩けなくなるが、しばらく休むと和らぐ。右ABI 0.6、右足背動脈触知不良。この患者の状態として最も適切な記述はどれか。", options:["糖尿病性神経障害による疼痛であり、フットケア指導を優先する", "間欠性跛行を伴う末梢動脈疾患（PAD）であり、血管外科へ紹介を要する", "静脈瘤による静脈うっ滞であり、圧迫療法が適応となる", "腰部脊柱管狭窄症による神経性跛行であり、整形外科へ紹介する", "リンパ浮腫の初期であり、複合的理学療法を開始する"], answer:1, explanation:"正解：②末梢動脈疾患（PAD）による間欠性跛行。200m歩行で痛みが出現し安静で軽快するパターン＋ABI 0.6（0.7未満は有意な虚血）＋足背動脈触知不良から末梢動脈疾患が強く示唆される。血管外科または循環器内科への紹介が必要。①誤：神経障害性疼痛は安静時・夜間に増悪する傾向があり、歩行との明確な関連パターンが異なる。③誤：静脈疾患では立位で悪化し挙上で改善するが、ABIは正常。④誤：脊柱管狭窄症も間欠跛行を呈するが、前屈で楽になる体位変換が特徴であり、ABIは正常。⑤誤：リンパ浮腫の主症状は浮腫であり間欠性跛行は呈さない。"},
+        {id:131, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者のネイルケア（爪切り）の方法として正しいのはどれか。", options:["爪を短く切り、両端を深く切り込んで巻き爪を予防する", "スクエアカット（四角形）を基本とし、角はやすりで軽く整える", "爪白癬があれば、看護師が積極的に深爪して真菌を除去する", "感覚障害があっても通常通り爪切りを行ってよい", "爪が肥厚している場合は患者自身で爪切りニッパーを使用させる"], answer:1, explanation:"正解：②スクエアカットを基本とし角をやすりで整える。巻き爪・陥入爪予防のためにスクエアカット（四角形）が推奨される。①誤：両端を深く切り込む「深切り」は巻き爪・陥入爪の原因となり禁忌。③誤：爪白癬への対処は抗真菌薬による薬物療法が原則であり、深爪は感染リスクを高める。④誤：感覚障害がある場合は微細な外傷に気づかないため、医療者または安全な方法で慎重に実施する必要がある。⑤誤：肥厚爪は患者自身のセルフケアが困難で外傷リスクが高いため、医療者（WOC看護師等）が対応すべき。"},
+        {id:132, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病性末梢神経障害患者のフットケア自己管理指導として適切でないのはどれか。", options:["毎日足全体を鏡を使って視診する習慣をつける", "足を洗う際は感染予防のため42〜45℃の熱めのお湯を使用する", "保湿剤は足底・かかとに塗布するが足趾間には塗らない", "新しい靴は短時間から慣らし、靴擦れがないか確認する", "靴の中に異物がないか毎回履く前に確認する"], answer:1, explanation:"正解（適切でない指導）：②42〜45℃の熱めのお湯の使用。感覚障害があると温度感覚が鈍麻しており熱傷を起こすリスクが高い。38〜40℃のぬるめのお湯を使用し、温度計で確認するよう指導する。①正：視覚による毎日の観察は神経障害患者に特に重要。③正：保湿剤の足趾間への塗布は浸軟・真菌感染を促進するため避ける。④正：新しい靴は段階的に慣らすことが必要。⑤正：異物による潰瘍形成を防ぐための重要な習慣。"},
+        {id:133, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者への治療用靴（糖尿病用フットウェア）の選択基準として適切なのはどれか。", options:["足趾部が狭く、足をしっかり固定するための細身のデザイン", "靴底は薄く、地面の感覚を足底で感じられるもの", "先端部に十分な深さと幅があり、足趾が圧迫されないもの", "インソールは取り外し不可の固定式で足弓をしっかり支えるもの", "かかと部は柔らかく、足首まで固定しないハイカットデザイン"], answer:2, explanation:"正解：③先端部に十分な深さ・幅があり足趾が圧迫されないもの。糖尿病用フットウェアのポイントは①先端・つま先部が広い（toe box が広い）、②足趾に圧迫がない、③衝撃を吸収するクッション性、④除去可能なインソール（カスタムオルソティクス対応）、⑤縫い目が少なく内面が滑らか。①誤：細身デザインは足趾圧迫・胼胝形成の原因。②誤：薄い靴底は地面の凹凸による外傷リスクを高める。④誤：インソールは取り外し可能なものが推奨（個別の足底矯正器具装着のため）。⑤誤：かかと固定は転倒予防に重要で、かかとはしっかり固定する設計が望ましい。"},
+        {id:134, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"72歳男性、糖尿病・慢性腎不全（透析中）。右第2趾に発赤・腫脹・熱感・排膿を伴う潰瘍あり。骨に達する深さで、X線で骨破壊像を認める。創部から緑色の膿性分泌物あり。適切な対応として最も優先されるのはどれか。", options:["ポビドンヨードで毎日創洗浄を行い外来経過観察", "骨髄炎を疑い整形外科・血管外科への緊急紹介と全身的抗菌薬投与", "湿潤療法（モイストヒーリング）を開始し創治癒を促進する", "透析患者のため保存的加療のみとし手術は禁忌とする", "自己血糖測定の強化指導を行い血糖コントロールが改善するまで待機する"], answer:1, explanation:"正解：②骨髄炎を疑い緊急紹介と全身的抗菌薬投与。骨への深達・X線骨破壊像・膿性分泌物（緑色＝緑膿菌疑い）は骨髄炎の強い示唆であり、Wagner Grade 3以上の重篤な状態。全身的抗菌薬投与と外科的評価（デブリードマン・切断術検討）が緊急対応として必要。①誤：ポビドンヨードは細胞毒性があり慢性創傷への繰り返し使用は組織障害を起こす。局所処置のみでは骨髄炎には対応不可。③誤：感染急性期・壊死組織存在下での湿潤療法単独は感染拡大リスクがある。④誤：透析患者であっても壊死・骨髄炎では手術（切断含む）が生命救助となりうる。⑤誤：血糖コントロール改善を待つ間に感染が全身に波及する危険がある。"},
+        {id:135, school:"予想問題", topic:"フットケア・糖尿病足病変", question:"糖尿病患者の下肢切断予防のためのフットケアチームアプローチにおけるWOC認定看護師の役割として最も適切なのはどれか。", options:["外科的デブリードマンを単独で実施する", "抗菌薬の選択・処方を行う", "スキンケア・創傷管理・フットケア指導を担い多職種連携の調整を行う", "ABI測定・下肢血流評価を放射線技師と協力して独自に行う", "義肢装具の選択と適合を独自に判断する"], answer:2, explanation:"正解：③スキンケア・創傷管理・フットケア指導・多職種連携調整がWOC認定看護師の役割。WOC認定看護師は皮膚・排泄ケアの専門家として、創傷アセスメント・ドレッシング選択・患者教育（セルフケア指導）・他職種（医師・理学療法士・管理栄養士・義肢装具士等）との連携調整を担う。①誤：外科的デブリードマンは医師が行う医行為。②誤：抗菌薬処方は医師の権限。④誤：ABI測定は看護師も実施できるが、診断・評価の主体は医師（血管外科・循環器）であり「独自に行う」は不適切。⑤誤：義肢装具の選択・適合は義肢装具士と医師が担当する。"},
+
+
+
+];
+
+// ===== ローカルストレージ安全読み込み =====
+function safeGetLS(key, fallback) {
+  try {
+    var val = localStorage.getItem(key);
+    return val ? JSON.parse(val) : fallback;
+  } catch(e) {
+    try { localStorage.removeItem(key); } catch(e2) {}
+    return fallback;
+  }
+}
+
+// ===== アプリ状態 =====
+// ===== 途中再開 =====
+function saveResume(indexOverride) {
+  try {
+    if (state.quizQueue.length === 0) return;
+    var saveIndex = (indexOverride !== undefined) ? indexOverride : state.currentIndex;
+    if (saveIndex >= state.quizQueue.length) return; // 全問終了後は保存しない
+    var data = {
+      queueIds: state.quizQueue.map(function(q) { return q.id; }),
+      currentIndex: saveIndex,
+      results: state.sessionResults.map(function(r) { return { id: r.q.id, correct: r.correct }; }),
+      school: state.selectedSchool,
+      topic: state.selectedTopic,
+      mode: state.currentMode,
+      savedAt: Date.now()
+    };
+    localStorage.setItem('woc_resume', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function clearResume() {
+  try { localStorage.removeItem('woc_resume'); } catch(e) {}
+  var card = document.getElementById('resume-card');
+  if (card) card.style.display = 'none';
+}
+
+function resumeQuiz() {
+  try {
+    var data = safeGetLS('woc_resume', null);
+    if (!data || !data.queueIds) { clearResume(); return; }
+    var queue = data.queueIds.map(function(id) {
+      return questions.find(function(q) { return q.id === id; });
+    }).filter(Boolean);
+    if (queue.length === 0 || data.currentIndex >= queue.length) { clearResume(); return; }
+    state.quizQueue = queue;
+    state.currentIndex = data.currentIndex;
+    state.selectedSchool = data.school || 'all';
+    state.selectedTopic = data.topic || 'all';
+    state.currentMode = data.mode || 'order';
+    state.sessionResults = (data.results || []).map(function(r) {
+      var q = questions.find(function(q) { return q.id === r.id; });
+      return q ? { q: q, correct: r.correct } : null;
+    }).filter(Boolean);
+    switchScreen('screen-quiz', 1);
+    loadQuestion();
+  } catch(e) {
+    clearResume();
+    alert('再開に失敗しました。最初から始めます。');
+  }
+}
+
+function checkResume() {
+  try {
+    var data = safeGetLS('woc_resume', null);
+    if (!data || !data.queueIds) return;
+    var remaining = data.queueIds.length - data.currentIndex;
+    if (remaining <= 0) { clearResume(); return; }
+    var date = new Date(data.savedAt);
+    var h = date.getHours(), m = String(date.getMinutes()).padStart(2, '0');
+    var info = data.currentIndex + '問完了 / 残り' + remaining + '問（' + h + ':' + m + '中断）';
+    var card = document.getElementById('resume-card');
+    var infoEl = document.getElementById('resume-info');
+    if (card && infoEl) {
+      infoEl.textContent = info;
+      card.style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+let state = {
+  currentMode: 'order',
+  selectedSchool: 'all',
+  selectedTopic: 'all',
+  quizQueue: [],
+  currentIndex: 0,
+  currentQuestion: null,
+  answered: false,
+  sessionResults: [],
+  history: safeGetLS('woc_history', {}),
+  bookmarks: safeGetLS('woc_bookmarks', []),
+};
+
+// ===== 初期化 =====
+function init() {
+  // 最初にホーム画面を確実に表示
+  document.querySelectorAll('.screen').forEach(function(s) { s.style.display = 'none'; });
+  var homeScreen = document.getElementById('screen-home');
+  if (homeScreen) homeScreen.style.display = 'block';
+
+  var schools = [];
+  var seenSchools = {};
+  questions.forEach(function(q) { if (!seenSchools[q.school]) { schools.push(q.school); seenSchools[q.school] = true; } });
+
+  var topics = [];
+  var seenTopics = {};
+  questions.forEach(function(q) { if (!seenTopics[q.topic]) { topics.push(q.topic); seenTopics[q.topic] = true; } });
+
+  var sf = document.getElementById('school-filters');
+  if (sf) {
+    schools.forEach(function(s) {
+      var sp = document.createElement('span');
+      sp.className = 'chip';
+      sp.setAttribute('data-filter', s);
+      sp.onclick = function() { setFilter(this, 'school'); };
+      sp.textContent = s;
+      sf.appendChild(sp);
+    });
+  }
+
+  var tf = document.getElementById('topic-filters');
+  if (tf) {
+    topics.forEach(function(t) {
+      var sp = document.createElement('span');
+      sp.className = 'chip';
+      sp.setAttribute('data-topic', t);
+      sp.onclick = function() { setFilter(this, 'topic'); };
+      sp.textContent = t;
+      tf.appendChild(sp);
+    });
+  }
+
+  updateHomeStats();
+  try { updateBookmarkList(); } catch(e) {}
+  try { updateStatsScreen(); } catch(e) {}
+}
+
+function updateHomeStats() {
+  const total = questions.length;
+  const done = Object.keys(state.history).length;
+  const correct = Object.values(state.history).filter(v => v.correct).length;
+  const acc = done > 0 ? Math.round(correct / done * 100) : 0;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-accuracy').textContent = done > 0 ? acc + '%' : '-%';
+
+  checkResume();
+}
+
+// ===== タブ切替 =====
+function showTab(tab, btn) {
+  if (tab !== 'quiz' && state.quizQueue.length > 0 && state.currentIndex > 0) saveResume(state.currentIndex);
+  document.querySelectorAll('.screen').forEach(function(s) { s.style.display = 'none'; });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  var screen = document.getElementById('screen-' + tab);
+  if (screen) screen.style.display = 'block';
+  if (btn) btn.classList.add('active');
+  if (tab === 'bookmark') updateBookmarkList();
+  if (tab === 'stats') updateStatsScreen();
+  if (tab === 'home') updateHomeStats();
+}
+
+// ===== フィルター =====
+function setFilter(el, type) {
+  if (type === 'school') {
+    document.querySelectorAll('#school-filters .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedSchool = el.dataset.filter;
+  } else {
+    document.querySelectorAll('#topic-filters .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedTopic = el.dataset.topic;
+  }
+}
+function setMode(el, type) {
+  document.querySelectorAll(`[data-mode]`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.currentMode = el.dataset.mode;
+}
+
+// ===== 安全な画面切り替え =====
+function switchScreen(targetId, tabIndex) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.style.display = 'none'; });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  var target = document.getElementById(targetId);
+  if (target) { target.style.display = 'block'; }
+  var tabs = document.querySelectorAll('.tab-btn');
+  if (tabs[tabIndex]) { tabs[tabIndex].classList.add('active'); }
+}
+
+// ===== クイズ開始 =====
+function startQuiz() {
+  try {
+    var pool = questions.filter(function(q) {
+      if (state.selectedSchool !== 'all' && q.school !== state.selectedSchool) return false;
+      if (state.selectedTopic !== 'all' && q.topic !== state.selectedTopic) return false;
+      return true;
+    });
+
+    if (state.currentMode === 'wrong') pool = pool.filter(function(q) { return state.history[q.id] && !state.history[q.id].correct; });
+    if (state.currentMode === 'bookmark') pool = pool.filter(function(q) { return Array.isArray(state.bookmarks) && state.bookmarks.indexOf(q.id) !== -1; });
+    if (state.currentMode === 'random') pool = pool.sort(function() { return Math.random() - 0.5; });
+    if (pool.length === 0) { alert('該当する問題がありません。\n出題モードや絞り込みを確認してください。'); return; }
+
+    state.quizQueue = pool;
+    state.currentIndex = 0;
+    state.sessionResults = [];
+    clearResume();
+    switchScreen('screen-quiz', 1);
+    loadQuestion();
+  } catch(e) {
+    console.error('startQuiz error:', e);
+    switchScreen('screen-home', 0);
+    alert('問題の読み込みに失敗しました。ページを再読み込みしてください。\n(' + e.message + ')');
+  }
+}
+
+function loadQuestion() {
+  try {
+    if (state.currentIndex >= state.quizQueue.length) { showResult(); return; }
+
+    var q = state.quizQueue[state.currentIndex];
+    if (!q) { showResult(); return; }
+    state.currentQuestion = q;
+    state.answered = false;
+
+    var total = state.quizQueue.length;
+    var cur = state.currentIndex + 1;
+
+    var pb = document.getElementById('progress-bar');
+    if (pb) pb.style.width = ((cur-1)/total*100) + '%';
+
+    var counter = document.getElementById('quiz-counter');
+    if (counter) counter.textContent = cur + ' / ' + total;
+
+    var schoolEl = document.getElementById('quiz-school');
+    if (schoolEl) schoolEl.textContent = q.school || '';
+
+    var topicEl = document.getElementById('quiz-topic');
+    if (topicEl) topicEl.textContent = q.topic || '';
+
+    // 事例テキスト
+    var caseBox = document.getElementById('case-box');
+    if (caseBox) {
+      if (q.type === 'case') {
+        caseBox.style.display = 'block';
+        var cn = document.getElementById('case-name');
+        var ct = document.getElementById('case-text');
+        if (cn) cn.textContent = q.caseName || '';
+        if (ct) ct.textContent = q.caseText || '';
+      } else {
+        caseBox.style.display = 'none';
+      }
+    }
+
+    var qtEl = document.getElementById('question-text');
+    if (qtEl) qtEl.textContent = q.question || '';
+
+    var optList = document.getElementById('options-list');
+    if (optList) {
+      optList.innerHTML = '';
+      (q.options || []).forEach(function(opt, i) {
+        var btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = (function(idx) { return function() { selectAnswer(idx); }; })(i);
+        optList.appendChild(btn);
+      });
+    }
+
+    var expBox = document.getElementById('explanation-box');
+    if (expBox) expBox.classList.remove('show');
+
+    var nextBtn = document.getElementById('next-btn');
+    if (nextBtn) nextBtn.classList.remove('show');
+
+    var bm = document.getElementById('bookmark-btn');
+    if (bm) {
+      var isBookmarked = Array.isArray(state.bookmarks) && state.bookmarks.indexOf(q.id) !== -1;
+      bm.textContent = isBookmarked ? '★' : '☆';
+      bm.className = 'bookmark-btn' + (isBookmarked ? ' active' : '');
+    }
+  } catch(e) {
+    console.error('loadQuestion error:', e);
+    switchScreen('screen-home', 0);
+    alert('問題の表示中にエラーが発生しました。ホームに戻ります。\n(' + e.message + ')');
+  }
+}
+
+function selectAnswer(idx) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const q = state.currentQuestion;
+  const correct = idx === q.answer;
+  const btns = document.querySelectorAll('.option-btn');
+
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.answer) btn.classList.add('correct');
+    else if (i === idx && !correct) btn.classList.add('wrong');
+  });
+
+  document.getElementById('explanation-text').textContent = q.explanation || '';
+  document.getElementById('explanation-box').classList.add('show');
+  document.getElementById('next-btn').classList.add('show');
+  document.getElementById('next-btn').textContent = state.currentIndex < state.quizQueue.length - 1 ? '次の問題 →' : '結果を見る 📊';
+
+  // 記録
+  state.history[q.id] = { correct, timestamp: Date.now(), topic: q.topic };
+  try { localStorage.setItem('woc_history', JSON.stringify(state.history)); } catch(e) {}
+  state.sessionResults.push({ q, correct });
+  saveResume(state.currentIndex + 1); // 解答直後に保存（閉じても再開できる）
+}
+
+function nextQuestion() {
+  state.currentIndex++;
+  saveResume();
+  loadQuestion();
+}
+
+function toggleBookmark() {
+  const id = state.currentQuestion.id;
+  if (state.bookmarks.includes(id)) {
+    state.bookmarks = state.bookmarks.filter(x => x !== id);
+    document.getElementById('bookmark-btn').textContent = '☆';
+    document.getElementById('bookmark-btn').className = 'bookmark-btn';
+  } else {
+    state.bookmarks.push(id);
+    document.getElementById('bookmark-btn').textContent = '★';
+    document.getElementById('bookmark-btn').className = 'bookmark-btn active';
+  }
+  try { localStorage.setItem('woc_bookmarks', JSON.stringify(state.bookmarks)); } catch(e) {}
+}
+
+// ===== 結果表示 =====
+function showResult() {
+  clearResume();
+  document.querySelectorAll('.screen').forEach(function(s) { s.style.display = 'none'; });
+  var resultScreen = document.getElementById('screen-result');
+  if (resultScreen) resultScreen.style.display = 'block';
+
+  const total = state.sessionResults.length;
+  const correct = state.sessionResults.filter(r => r.correct).length;
+  const pct = Math.round(correct / total * 100);
+
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('score-sub').textContent = `${correct}/${total}問`;
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = total - correct;
+  document.getElementById('res-bookmark').textContent = state.sessionResults.filter(r => state.bookmarks.includes(r.q.id)).length;
+
+  const circle = document.getElementById('score-circle');
+  circle.className = 'score-circle ' + (pct >= 80 ? 'great' : pct >= 60 ? 'good' : 'ok');
+
+  const msgs = pct >= 90 ? ['完璧です！🏆', '全領域でしっかり理解できています。この調子で！'] :
+               pct >= 80 ? ['素晴らしい！🎉', '合格水準です。苦手分野を重点的に復習しましょう。'] :
+               pct >= 60 ? ['もう一息！💪', '間違えた問題を中心に復習しましょう。'] :
+                           ['頑張りましょう！📖', '基礎から丁寧に復習することが大切です。'];
+  document.getElementById('score-message').textContent = msgs[0];
+  document.getElementById('score-comment').textContent = msgs[1];
+
+  // テーマ別
+  const topicMap = {};
+  state.sessionResults.forEach(r => {
+    if (!topicMap[r.q.topic]) topicMap[r.q.topic] = { correct: 0, total: 0 };
+    topicMap[r.q.topic].total++;
+    if (r.correct) topicMap[r.q.topic].correct++;
+  });
+
+  const list = document.getElementById('topic-results-list');
+  list.innerHTML = '';
+  Object.entries(topicMap).sort((a,b) => (a[1].correct/a[1].total) - (b[1].correct/b[1].total)).forEach(([topic, data]) => {
+    const pct = Math.round(data.correct/data.total*100);
+    const color = pct >= 80 ? '#38a169' : pct >= 60 ? '#d69e2e' : '#e53e3e';
+    list.innerHTML += `<div class="topic-row"><span style="min-width:120px;font-size:12px">${topic}</span><div class="topic-bar-wrap"><div class="topic-bar" style="width:${pct}%;background:${color}"></div></div><span style="font-size:12px;font-weight:700;color:${color}">${pct}%</span></div>`;
+  });
+
+  updateHomeStats();
+}
+
+function retryWrong() {
+  var wrongIds = state.sessionResults.filter(function(r) { return !r.correct; }).map(function(r) { return r.q.id; });
+  if (wrongIds.length === 0) { alert('間違えた問題はありません！'); return; }
+  state.quizQueue = questions.filter(function(q) { return wrongIds.indexOf(q.id) !== -1; });
+  state.currentIndex = 0;
+  state.sessionResults = [];
+  switchScreen('screen-quiz', 1);
+  loadQuestion();
+}
+
+function goHome() {
+  if (state.quizQueue.length > 0 && state.currentIndex > 0) saveResume(state.currentIndex);
+  switchScreen('screen-home', 0);
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', i===0); });
+  updateHomeStats();
+}
+
+// ===== ブックマーク =====
+function updateBookmarkList() {
+  const list = document.getElementById('bookmark-list');
+  const bms = questions.filter(q => state.bookmarks.includes(q.id));
+  if (bms.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">⭐</div><p>クイズ中に☆ボタンを押すと<br>ここに追加されます</p></div>';
+    return;
+  }
+  list.innerHTML = bms.map(q => `
+    <div class="bookmark-item">
+      <div class="bookmark-item-meta">${q.school} ｜ ${q.topic}</div>
+      <div class="bookmark-item-q">${q.question.substring(0,60)}${q.question.length>60?'…':''}</div>
+    </div>`).join('');
+}
+
+// ===== 統計 =====
+function updateStatsScreen() {
+  const schools = [...new Set(questions.map(q => q.school))];
+  const sl = document.getElementById('school-stats-list');
+  sl.innerHTML = schools.map(s => {
+    const cnt = questions.filter(q => q.school === s).length;
+    return `<div class="topic-row"><span style="font-size:13px;font-weight:600">${s}</span><span style="font-size:13px;color:#2b6cb0;font-weight:700">${cnt}問</span></div>`;
+  }).join('');
+
+  const topics = [...new Set(questions.map(q => q.topic))];
+  const tl = document.getElementById('topic-stats-list');
+  tl.innerHTML = topics.map(t => {
+    const qs = questions.filter(q => q.topic === t);
+    const done = qs.filter(q => state.history[q.id]);
+    const correct = done.filter(q => state.history[q.id]?.correct).length;
+    const pct = done.length > 0 ? Math.round(correct/done.length*100) : null;
+    const color = pct === null ? '#a0aec0' : pct >= 80 ? '#38a169' : pct >= 60 ? '#d69e2e' : '#e53e3e';
+    return `<div class="topic-row"><span style="min-width:130px;font-size:12px">${t}（${qs.length}問）</span><div class="topic-bar-wrap"><div class="topic-bar" style="width:${pct||0}%;background:${color}"></div></div><span style="font-size:12px;font-weight:700;color:${color}">${pct !== null ? pct+'%' : '-'}</span></div>`;
+  }).join('');
+
+  const weak = topics
+    .map(t => {
+      const qs = questions.filter(q => q.topic === t);
+      const done = qs.filter(q => state.history[q.id]);
+      const correct = done.filter(q => state.history[q.id]?.correct).length;
+      return { topic: t, pct: done.length > 0 ? correct/done.length : null };
+    })
+    .filter(x => x.pct !== null)
+    .sort((a,b) => a.pct - b.pct)
+    .slice(0, 3);
+
+  const wl = document.getElementById('weak-topics-list');
+  if (weak.length === 0) {
+    wl.innerHTML = '<p style="color:#a0aec0;font-size:13px;text-align:center;padding:20px">クイズを解くと苦手テーマが表示されます</p>';
+  } else {
+    wl.innerHTML = weak.map((w, i) => `
+      <div class="topic-row">
+        <span style="font-size:20px">${['🥇','🥈','🥉'][i]}</span>
+        <span style="flex:1;padding:0 10px;font-size:13px;font-weight:600">${w.topic}</span>
+        <span style="font-size:13px;font-weight:700;color:#e53e3e">${Math.round(w.pct*100)}%</span>
+      </div>`).join('');
+  }
+}
+
+// ===== 起動 =====
+try { init(); } catch(e) { console.error('init error:', e); }
+</script>
+</body>
+</html>
