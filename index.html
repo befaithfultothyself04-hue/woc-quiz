@@ -106,9 +106,11 @@
 
   /* ブックマーク一覧 */
   .bookmark-list { display: flex; flex-direction: column; gap: 12px; }
-  .bookmark-item { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #f6ad55; }
+  .bookmark-item { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #f6ad55; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
+  .bookmark-item:active { background: #fffbeb; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
   .bookmark-item-meta { font-size: 11px; color: #718096; margin-bottom: 6px; }
   .bookmark-item-q { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .bookmark-item-hint { font-size: 11px; color: #a0aec0; margin-top: 6px; }
   .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
 
@@ -819,10 +821,26 @@ function updateBookmarkList() {
     return;
   }
   list.innerHTML = bms.map(q => `
-    <div class="bookmark-item">
+    <div class="bookmark-item" onclick="startSingleQuestion(${q.id})">
       <div class="bookmark-item-meta">${q.school} ｜ ${q.topic}</div>
       <div class="bookmark-item-q">${q.question.substring(0,60)}${q.question.length>60?'…':''}</div>
+      <div class="bookmark-item-hint">▶ タップして解く</div>
     </div>`).join('');
+}
+
+function startSingleQuestion(id) {
+  try {
+    var q = questions.find(function(q) { return q.id === id; });
+    if (!q) return;
+    state.quizQueue = [q];
+    state.currentIndex = 0;
+    state.sessionResults = [];
+    clearResume();
+    switchScreen('screen-quiz', 1);
+    loadQuestion();
+  } catch(e) {
+    alert('問題を開けませんでした。');
+  }
 }
 
 // ===== 統計 =====
