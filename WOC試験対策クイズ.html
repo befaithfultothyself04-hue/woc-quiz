@@ -1,4 +1,5 @@
-index.html
+<!DOCTYPE html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -105,9 +106,11 @@ index.html
 
   /* ブックマーク一覧 */
   .bookmark-list { display: flex; flex-direction: column; gap: 12px; }
-  .bookmark-item { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #f6ad55; }
+  .bookmark-item { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #f6ad55; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
+  .bookmark-item:active { background: #fffbeb; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
   .bookmark-item-meta { font-size: 11px; color: #718096; margin-bottom: 6px; }
   .bookmark-item-q { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .bookmark-item-hint { font-size: 11px; color: #a0aec0; margin-top: 6px; }
   .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
 
@@ -310,7 +313,7 @@ const questions = [
   { id:21, school:"清瀬2025", year:2025, topic:"尿路ストーマ", question:"問題22｜尿路ストーマのケアについて正しいものはどれか。\na. 術直後は尿管カテーテルからの尿流出確認。\nb. 腎瘻はカテーテルをキャップで止めて入浴。\nc. 偽上皮腫性肥厚は面板ストーマ孔を大きくカット。\nd. 洗浄はストーマ近接部から外周へすすめる。", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:1, explanation:"a正：術後は尿流出確認が重要。d正：洗浄は近接部→外側へ。b誤：腎瘻患者はカテーテルを止めてはいけない。c誤：偽上皮腫性肥厚は孔を小さくする。" },
   { id:22, school:"清瀬2025", year:2025, topic:"尿路ストーマ", question:"問題23｜ストーマ静脈瘤について誤っているものはどれか。", options:["1. 治療方法に硬化療法がある。","2. 右側結腸ストーマに生じやすい。","3. 門脈圧亢進症のある患者に起こりやすい。","4. 硝子板圧迫で発赤が消退する。"], answer:1, explanation:"ストーマ静脈瘤は左側結腸ストーマに多い（門脈-体静脈短絡が形成されやすい）。" },
   { id:23, school:"清瀬2025", year:2025, topic:"泌尿器解剖", question:"問題24｜腎臓の解剖生理について誤っているものはどれか。", options:["1. 右腎は左腎より高い位置にある。","2. 腎門部には神経が出入りしている。","3. 成人の1日の糸球体濾過量は約150Lである。","4. ひとつの腎臓には約100万個のネフロンが存在する。"], answer:0, explanation:"右腎は肝臓により圧迫されるため、左腎より低い位置にある。" },
-  { id:24, school:"清瀬2025", year:2025, topic:"下部尿路障害", question:"問題25｜下部尿路障害で使用する薬剤の組み合わせで正しいものはどれか。\na. 尿意切迫 ― 利尿剤　b. 前立腺肥大 ― α1遮断薬\nc. 溢流性尿失禁 ― Ca拮抗薬　d. 過活動膀胱 ― β3受容体作動薬", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"b正：前立腺肥大→α1遮断薬。d正：過活動膀胱→β3受容体作動薬（ミラベグロン）。a誤：切迫には抗ムスカリン薬。c誤：溢流性尿失禁→α1遮断薬・コリン作動薬。" },
+  { id:24, school:"清瀬2025", year:2025, topic:"下部尿路障害", question:"問題25｜下部尿路障害で使用する薬剤の組み合わせで正しいものはどれか。\na. 尿意切迫 ― 利尿剤　b. 前立腺肥大 ― α1遮断薬\nc. 溢流性尿失禁 ― Ca拮抗薬　d. 過活動膀胱 ― β3受容体作動薬", options:["1. a, b","2. b, d","3. b, c","4. c, d"], answer:1, explanation:"b正：前立腺肥大→α1遮断薬（タムスロシン等）。d正：過活動膀胱→β3受容体作動薬（ミラベグロン・ビベグロン）。a誤：尿意切迫（過活動膀胱）→抗ムスカリン薬またはβ3作動薬が正しい。c誤：溢流性尿失禁→α1遮断薬・コリン作動薬が正しい（Ca拮抗薬は膀胱収縮を抑制するため不適切）。" },
   { id:25, school:"清瀬2025", year:2025, topic:"排尿アセスメント", question:"問題26｜尿検査の正常値について正しいものはどれか。\na. 尿たんぱく 100〜150mg/日　b. 尿比重 1.003〜1.03程度\nc. PHは弱アルカリ性　d. 尿糖は200mg/dl以下", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:0, explanation:"a正：尿たんぱく正常≤150mg/日。b正：尿比重1.003〜1.030。c誤：尿は弱酸性（pH5〜7）。d誤：尿糖は通常0（陰性）。" },
   { id:26, school:"清瀬2025", year:2025, topic:"排尿アセスメント", question:"問題27｜排尿日誌について誤っているものはどれか。", options:["1. 飲水量を記載する。","2. 観察は最低24時間行い記録する。","3. おむつ使用患者は対象としない。","4. 失禁のタイプが推測できる。"], answer:2, explanation:"おむつ使用患者も排尿日誌の対象。おむつ重量測定で排尿量を推定できる。" },
   { id:27, school:"清瀬2025", year:2025, topic:"IAD", question:"問題28｜IADの好発部位で誤っているものはどれか。", options:["1. 下腹部","2. 会陰部","3. 肛門周囲","4. 大腿部"], answer:0, explanation:"IADの好発部位は会陰部・肛門周囲・臀部・鼠径部・大腿内側など。下腹部は主な好発部位ではない。" },
@@ -322,7 +325,7 @@ const questions = [
   { id:33, school:"清瀬2025", year:2025, topic:"IAD", question:"問題34｜IADのリスク因子で誤っているものはどれか。", options:["1. 低栄養状態","2. ステロイド使用中","3. 経皮水分蒸散量の低下","4. 尿・便以外の排泄物の接触"], answer:2, explanation:"TEWLの低下はバリア機能が保たれていることを示す。IADリスクはTEWL増加（バリア機能低下）。" },
   { id:34, school:"清瀬2025", year:2025, topic:"失禁ケア用品", question:"問題35｜失禁ケア用品で誤っているものはどれか。", options:["1. 肛門パウチは単品系平面装具を用いる。","2. ポリエステル繊維綿は尿を速やかに吸収する。","3. 下痢便ドレナージチューブは最長29日まで連続使用が可能。","4. 軟便吸収パッドはろ過作用により目詰まりしにくく水分を吸収しやすい。"], answer:3, explanation:"軟便吸収パッドは目詰まりしやすいのが特徴（液体+固形混在の軟便でフィルターが詰まる）。" },
   // 事例問題
-  { id:35, school:"清瀬2025", year:2025, topic:"褥瘡・DESIGN-R", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", caseText:"A氏 70歳代男性。パーキンソン病。仙骨部：縦2cm×横4cm・皮下組織までの損傷。赤色肉芽が全面、壊死組織なし、滲出液は淡黄色・少量（ガーゼ1日1回交換）。ポケットなし。感染徴候なし。", question:"設問1｜入院時の仙骨部褥瘡のDESIGN-R®2020評価について正しいものはどれか。", options:["1. d2-e1s6i0g1n0p0：8点","2. d2-e3s8i0g0n0p0：11点","3. D3-e3s6i0g0n0p0：9点","4. D3-e2s8i0G6n0p0：16点"], answer:0, explanation:"皮下組織までの損傷→d2。滲出液少量（1回/日）→e1。面積2×4=8cm²→s6。感染なし→i0。赤色肉芽全面→g1。壊死なし→n0。ポケットなし→p0。合計：d2+e1+s6+i0+g1+n0+p0=10点相当の選択肢1が最も適切な組み合わせ。" },
+  { id:35, school:"清瀬2025", year:2025, topic:"褥瘡・DESIGN-R", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", caseText:"A氏 70歳代男性。パーキンソン病。仙骨部：縦2cm×横4cm・皮下組織までの損傷。赤色肉芽が全面、壊死組織なし、滲出液は淡黄色・少量（ガーゼ1日1回交換）。ポケットなし。感染徴候なし。", question:"設問1｜入院時の仙骨部褥瘡のDESIGN-R®2020評価について正しいものはどれか。", options:["1. D3-e1s6i0g1n0p0：8点","2. d2-e3s8i0g0n0p0：11点","3. D3-e3s6i0g0n0p0：9点","4. D3-e2s8i0G6n0p0：16点"], answer:0, explanation:"皮下組織までの損傷→D3（大文字。d2は真皮まで、D3は皮下組織まで）。滲出液少量（1回/日）→e1。面積2×4=8cm²→s6。感染なし→i0。赤色肉芽全面（90%以上）→g1。壊死なし→n0。ポケットなし→p0。※DESIGN-R 2020では深さ(d/D)は合計点に含まない。合計：e1+s6+i0+g1+n0+p0=8点。" },
   { id:36, school:"清瀬2025", year:2025, topic:"褥瘡治療", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", question:"設問2｜入院時の仙骨部褥瘡の局所治療について正しいものはどれか。", options:["1. ブロメラインを塗布する。","2. ハイドロジェルを塗布する。","3. ハイドロコロイドを貼付する。","4. ジメチルイソプロピルアズレンを塗布する。"], answer:2, explanation:"赤色肉芽全面・壊死組織なし・滲出液少量→ハイドロコロイドで湿潤環境を保つのが適切。ブロメラインは壊死組織除去用（不要）。" },
   { id:37, school:"清瀬2025", year:2025, topic:"褥瘡・栄養", type:"case", caseName:"事例A：Aさん（パーキンソン病・仙骨部褥瘡）", question:"設問3｜褥瘡治癒に向けて摂取すべき栄養素のうち適切ではないものはどれか。", options:["1. 亜鉛","2. アルギニン","3. ビタミンA","4. アスコルビン酸（ビタミンC）"], answer:2, explanation:"褥瘡ケアで特に推奨される栄養素は亜鉛・アルギニン・ビタミンC（アスコルビン酸）。ビタミンAは粘膜保護には重要だが、褥瘡ガイドラインでの優先度は低い。" },
   { id:38, school:"清瀬2025", year:2025, topic:"褥瘡・洗浄", type:"case", caseName:"事例A：Aさん（入院14日目・クリティカルコロナイゼーション疑い）", caseText:"入院14日目：創面にぬめりあり、滲出液増加、肉芽は浮腫状。膿なし。", question:"設問4｜入院14日目の褥瘡の洗浄方法について正しいものはどれか。\na. 圧をかけないよう洗浄　b. 次亜塩素酸ナトリウムで消毒\nc. 界面活性剤含有洗浄剤で洗浄　d. 創周囲皮膚も含め広範囲（10〜20cm）を洗浄", options:["1. a, b","2. a, d","3. b, c","4. c, d"], answer:3, explanation:"クリティカルコロナイゼーション（バイオフィルム疑い）にはc正：界面活性剤含有洗浄剤、d正：広範囲洗浄が有効。a誤：適度な圧で洗浄がバイオフィルム除去に有効。b誤：次亜塩素酸は組織毒性あり。" },
@@ -445,25 +448,29 @@ function clearResume() {
 function resumeQuiz() {
   try {
     var data = safeGetLS('woc_resume', null);
-    if (!data || !data.queueIds) { clearResume(); return; }
+    if (!data || !data.queueIds || !Array.isArray(data.queueIds)) { clearResume(); return; }
+    // ID は数値・文字列どちらでも一致するよう Number() で変換
     var queue = data.queueIds.map(function(id) {
-      return questions.find(function(q) { return q.id === id; });
+      var numId = Number(id);
+      return questions.find(function(q) { return q.id === numId; });
     }).filter(Boolean);
-    if (queue.length === 0 || data.currentIndex >= queue.length) { clearResume(); return; }
+    if (queue.length === 0) { clearResume(); return; }
+    var resumeIndex = Math.min(Number(data.currentIndex) || 0, queue.length - 1);
     state.quizQueue = queue;
-    state.currentIndex = data.currentIndex;
+    state.currentIndex = resumeIndex;
     state.selectedSchool = data.school || 'all';
     state.selectedTopic = data.topic || 'all';
     state.currentMode = data.mode || 'order';
-    state.sessionResults = (data.results || []).map(function(r) {
-      var q = questions.find(function(q) { return q.id === r.id; });
-      return q ? { q: q, correct: r.correct } : null;
+    state.sessionResults = (data.results || []).filter(Boolean).map(function(r) {
+      if (!r || r.id == null) return null;
+      var q = questions.find(function(q) { return q.id === Number(r.id); });
+      return q ? { q: q, correct: !!r.correct } : null;
     }).filter(Boolean);
     switchScreen('screen-quiz', 1);
     loadQuestion();
   } catch(e) {
     clearResume();
-    alert('再開に失敗しました。最初から始めます。');
+    alert('再開に失敗しました。最初から始めます。\nエラー: ' + (e && e.message ? e.message : String(e)));
   }
 }
 
@@ -814,10 +821,26 @@ function updateBookmarkList() {
     return;
   }
   list.innerHTML = bms.map(q => `
-    <div class="bookmark-item">
+    <div class="bookmark-item" onclick="startSingleQuestion(${q.id})">
       <div class="bookmark-item-meta">${q.school} ｜ ${q.topic}</div>
       <div class="bookmark-item-q">${q.question.substring(0,60)}${q.question.length>60?'…':''}</div>
+      <div class="bookmark-item-hint">▶ タップして解く</div>
     </div>`).join('');
+}
+
+function startSingleQuestion(id) {
+  try {
+    var q = questions.find(function(q) { return q.id === id; });
+    if (!q) return;
+    state.quizQueue = [q];
+    state.currentIndex = 0;
+    state.sessionResults = [];
+    clearResume();
+    switchScreen('screen-quiz', 1);
+    loadQuestion();
+  } catch(e) {
+    alert('問題を開けませんでした。');
+  }
 }
 
 // ===== 統計 =====
