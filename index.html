@@ -114,6 +114,12 @@
   .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
 
+  /* 新着問題カード */
+  .new-questions-card { background: linear-gradient(135deg, #f0fff4, #c6f6d5); border: 2px solid #68d391; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; display: none; }
+  .new-questions-card h3 { font-size: 14px; font-weight: 700; color: #276749; margin-bottom: 4px; }
+  .new-questions-card p { font-size: 13px; color: #2f855a; margin-bottom: 12px; }
+  .new-questions-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #38a169, #2f855a); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+
   /* 統計画面 */
   .analysis-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 12px; }
   .analysis-card h3 { font-size: 14px; font-weight: 700; color: #4a5568; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f0; }
@@ -145,6 +151,13 @@
       <button class="resume-btn" onclick="resumeQuiz()">続きから再開する ▶</button>
       <button class="resume-discard-btn" onclick="clearResume()">破棄</button>
     </div>
+  </div>
+
+  <!-- 新着問題カード -->
+  <div class="new-questions-card" id="new-questions-card">
+    <h3>🆕 新着の予想問題があります</h3>
+    <p id="new-questions-info">未回答の予想問題を練習しましょう</p>
+    <button class="new-questions-btn" onclick="startNewQuestions()">新着問題を解く ▶</button>
   </div>
 
   <div class="stats-grid">
@@ -660,7 +673,44 @@ function updateHomeStats() {
   document.getElementById('stat-correct').textContent = correct;
   document.getElementById('stat-accuracy').textContent = done > 0 ? acc + '%' : '-%';
 
+  // 新着問題カード更新
+  var newQs = questions.filter(function(q) {
+    return q.school === '予想問題' && !state.history[q.id];
+  });
+  var newCard = document.getElementById('new-questions-card');
+  var newInfo = document.getElementById('new-questions-info');
+  if (newCard && newInfo) {
+    if (newQs.length > 0) {
+      newInfo.textContent = '未回答の予想問題が ' + newQs.length + ' 問あります';
+      newCard.style.display = 'block';
+    } else {
+      newCard.style.display = 'none';
+    }
+  }
+
   checkResume();
+}
+
+// ===== 新着問題（未回答の予想問題）開始 =====
+function startNewQuestions() {
+  try {
+    var pool = questions.filter(function(q) {
+      return q.school === '予想問題' && !state.history[q.id];
+    });
+    if (pool.length === 0) {
+      alert('新着の予想問題はありません。\nすべての予想問題を回答済みです！');
+      return;
+    }
+    state.quizQueue = pool;
+    state.currentIndex = 0;
+    state.sessionResults = [];
+    clearResume();
+    switchScreen('screen-quiz', 1);
+    loadQuestion();
+  } catch(e) {
+    console.error('startNewQuestions error:', e);
+    alert('問題の読み込みに失敗しました。\n(' + e.message + ')');
+  }
 }
 
 // ===== タブ切替 =====
