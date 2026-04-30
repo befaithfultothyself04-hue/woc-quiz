@@ -69,6 +69,13 @@
   .next-btn.show { display: block; }
   .bookmark-btn { padding: 14px 18px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 20px; cursor: pointer; }
   .bookmark-btn.active { border-color: #f6ad55; background: #fffbeb; }
+  .report-btn { padding: 14px 18px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 18px; cursor: pointer; display: none; }
+  .report-btn.show { display: block; }
+  .report-btn.active { border-color: #e53e3e; background: #fff5f5; }
+  .report-item { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid #e53e3e; margin-bottom: 10px; cursor: pointer; }
+  .report-item-meta { font-size: 11px; color: #718096; margin-bottom: 4px; }
+  .report-item-q { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .report-item-reason { font-size: 12px; color: #e53e3e; margin-top: 6px; font-weight: 600; }
 
   /* 結果画面 */
   .result-card { background: white; border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
@@ -233,6 +240,7 @@
   </div>
   <div class="action-row">
     <button class="bookmark-btn" id="bookmark-btn" onclick="toggleBookmark()">☆</button>
+    <button class="report-btn" id="report-btn" onclick="toggleReport()">⚠️</button>
     <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題 →</button>
   </div>
 </div>
@@ -297,6 +305,10 @@
   <div class="analysis-card">
     <h3>💡 苦手テーマ TOP3</h3>
     <div id="weak-topics-list"></div>
+  </div>
+  <div class="analysis-card" id="report-section" style="display:none">
+    <h3>⚠️ 報告済みの問題</h3>
+    <div id="report-list"></div>
   </div>
 </div>
 
@@ -768,6 +780,7 @@ let state = {
   sessionResults: [],
   history: safeGetLS('woc_history', {}),
   bookmarks: safeGetLS('woc_bookmarks', []),
+  reports: safeGetLS('woc_reports', []),
 };
 
 // ===== 初期化 =====
@@ -998,6 +1011,11 @@ function loadQuestion() {
       bm.textContent = isBookmarked ? '★' : '☆';
       bm.className = 'bookmark-btn' + (isBookmarked ? ' active' : '');
     }
+    var rb = document.getElementById('report-btn');
+    if (rb) {
+      var isReported = state.reports.some(function(r) { return r.id === q.id; });
+      rb.className = 'report-btn show' + (isReported ? ' active' : '');
+    }
   } catch(e) {
     console.error('loadQuestion error:', e);
     switchScreen('screen-home', 0);
@@ -1114,6 +1132,47 @@ function goHome() {
   updateHomeStats();
 }
 
+// ===== 報告 =====
+function toggleReport() {
+  var q = state.currentQuestion;
+  if (!q) return;
+  var reasons = ['解答が違う気がする', '解説が間違っている', '問題文がおかしい', 'その他'];
+  var existing = state.reports.find(function(r) { return r.id === q.id; });
+  if (existing) {
+    if (confirm('この問題の報告を取り消しますか？')) {
+      state.reports = state.reports.filter(function(r) { return r.id !== q.id; });
+      try { localStorage.setItem('woc_reports', JSON.stringify(state.reports)); } catch(e) {}
+      var btn = document.getElementById('report-btn');
+      if (btn) { btn.classList.remove('active'); btn.title = ''; }
+    }
+    return;
+  }
+  var reason = prompt('どんな問題がありますか？\n1: 解答が違う気がする\n2: 解説が間違っている\n3: 問題文がおかしい\n4: その他\n\n番号を入力してください（1〜4）:');
+  if (!reason) return;
+  var idx = parseInt(reason) - 1;
+  var reasonText = reasons[idx] || reasons[3];
+  state.reports.push({ id: q.id, reason: reasonText, topic: q.topic, school: q.school, question: q.question });
+  try { localStorage.setItem('woc_reports', JSON.stringify(state.reports)); } catch(e) {}
+  var btn = document.getElementById('report-btn');
+  if (btn) { btn.classList.add('active'); btn.title = reasonText; }
+  alert('報告を記録しました！\n後でまとめて確認・修正します。');
+}
+
+function updateReportList() {
+  var section = document.getElementById('report-section');
+  var list = document.getElementById('report-list');
+  if (!section || !list) return;
+  if (state.reports.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = state.reports.map(function(r) {
+    return '<div class="report-item" onclick="startSingleQuestion(' + r.id + ')">' +
+      '<div class="report-item-meta">ID:' + r.id + ' ｜ ' + r.school + ' ｜ ' + r.topic + '</div>' +
+      '<div class="report-item-q">' + r.question.substring(0, 60) + (r.question.length > 60 ? '…' : '') + '</div>' +
+      '<div class="report-item-reason">⚠️ ' + r.reason + '</div>' +
+      '</div>';
+  }).join('');
+}
+
 // ===== ブックマーク =====
 function updateBookmarkList() {
   const list = document.getElementById('bookmark-list');
@@ -1187,6 +1246,7 @@ function updateStatsScreen() {
         <span style="font-size:13px;font-weight:700;color:#e53e3e">${Math.round(w.pct*100)}%</span>
       </div>`).join('');
   }
+  updateReportList();
 }
 
 // ===== 起動 =====
