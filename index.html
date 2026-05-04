@@ -130,6 +130,30 @@
   /* 統計画面 */
   .analysis-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 12px; }
   .analysis-card h3 { font-size: 14px; font-weight: 700; color: #4a5568; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f0; }
+  /* ===== まとめ辞書タブ ===== */
+  .matome-search { padding: 12px 16px; background: white; position: sticky; top: 114px; z-index: 90; border-bottom: 1px solid #e2e8f0; }
+  .matome-search input { width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 24px; font-size: 15px; outline: none; background: #f7fafc; }
+  .matome-search input:focus { border-color: #2b6cb0; background: white; }
+  .matome-cats { display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; background: white; scrollbar-width: none; }
+  .matome-cats::-webkit-scrollbar { display: none; }
+  .matome-cat { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 2px solid #e2e8f0; background: white; color: #4a5568; cursor: pointer; }
+  .matome-cat.active { background: #2b6cb0; border-color: #2b6cb0; color: white; }
+  .matome-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .matome-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+  .matome-card-head { padding: 14px 16px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; }
+  .matome-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .matome-card-title { font-size: 15px; font-weight: 700; color: #1a202c; flex: 1; }
+  .matome-card-summary { font-size: 13px; color: #4a5568; margin-top: 4px; line-height: 1.5; }
+  .matome-card-arrow { color: #a0aec0; font-size: 14px; margin-left: 4px; transition: transform 0.2s; }
+  .matome-card.open .matome-card-arrow { transform: rotate(180deg); }
+  .matome-card-detail { padding: 0 16px 14px; font-size: 13px; color: #2d3748; line-height: 1.7; display: none; border-top: 1px solid #f0f4f8; padding-top: 12px; margin-top: 0; }
+  .matome-card.open .matome-card-detail { display: block; }
+  .matome-detail-item { padding: 4px 0; border-bottom: 1px dotted #e2e8f0; }
+  .matome-detail-item:last-child { border-bottom: none; }
+  .matome-source { font-size: 11px; color: #a0aec0; margin-top: 8px; }
+  .matome-empty { text-align: center; padding: 40px 20px; color: #a0aec0; }
+  .matome-add-btn { position: fixed; bottom: 24px; right: 20px; width: 52px; height: 52px; border-radius: 50%; background: #2b6cb0; color: white; font-size: 24px; border: none; box-shadow: 0 4px 12px rgba(43,108,176,0.4); cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 200; }
+  .matome-count { font-size: 12px; color: #718096; padding: 4px 16px 0; }
 </style>
 </head>
 <body>
@@ -144,6 +168,7 @@
   <button class="tab-btn" onclick="showTab('quiz', this)">📝 クイズ</button>
   <button class="tab-btn" onclick="showTab('bookmark', this)">⭐ 復習</button>
   <button class="tab-btn" onclick="showTab('stats', this)">📊 分析</button>
+  <button class="tab-btn" onclick="showTab('matome', this)">📖 まとめ</button>
 </div>
 
 <!-- ホーム画面 -->
@@ -310,6 +335,16 @@
     <h3>⚠️ 報告済みの問題</h3>
     <div id="report-list"></div>
   </div>
+</div>
+
+<!-- まとめ辞書画面 -->
+<div class="screen" id="screen-matome">
+  <div class="matome-search">
+    <input type="text" id="matome-search-input" placeholder="🔍 キーワードで検索…" oninput="filterMatome()">
+  </div>
+  <div class="matome-cats" id="matome-cats"></div>
+  <div class="matome-count" id="matome-count"></div>
+  <div class="matome-list" id="matome-list"></div>
 </div>
 
 <script>
@@ -940,6 +975,7 @@ function showTab(tab, btn) {
   if (tab === 'bookmark') updateBookmarkList();
   if (tab === 'stats') updateStatsScreen();
   if (tab === 'home') updateHomeStats();
+  if (tab === 'matome') renderMatome();
 }
 
 // ===== フィルター =====
@@ -1298,6 +1334,592 @@ function updateStatsScreen() {
       </div>`).join('');
   }
   updateReportList();
+}
+
+// ===== まとめ辞書データ =====
+const matomeData = [
+  {
+    id: 1, cat: "皮膚解剖",
+    color: "#e6f0ff", textColor: "#2b6cb0",
+    title: "表皮の層構造（上→下）",
+    summary: "上から：角質層→顆粒層→有棘層→基底層",
+    detail: [
+      "角質層：最外層。ケラチンタンパクが充填された死細胞。バリア機能の主役。",
+      "顆粒層：ケラトヒアリン顆粒を含む。2〜3層。",
+      "有棘層：デスモソームで連結。最も厚い層。免疫担当のランゲルハンス細胞が存在。",
+      "基底層：1層。幹細胞・メラノサイトが存在。細胞分裂が活発で、ターンオーバーの起点。",
+      "ターンオーバー正常：約28日（高齢者・乾燥肌では延長）。"
+    ]
+  },
+  {
+    id: 2, cat: "皮膚解剖",
+    color: "#e6f0ff", textColor: "#2b6cb0",
+    title: "皮膚付属器（汗腺・皮脂腺）",
+    summary: "エクリン腺＝体温調節。アポクリン腺＝体臭。皮脂腺＝皮脂分泌。",
+    detail: [
+      "エクリン汗腺：全身に分布。水分・電解質を含む汗→気化熱で体温調節。",
+      "アポクリン汗腺：腋窩・外陰部などに局在。思春期から活発化。細菌分解で体臭の原因。",
+      "皮脂腺：毛包に付属。皮脂（トリグリセリド・ワックス等）を分泌。pH維持・保湿に関与。",
+      "【頻出間違い】汗腺から皮脂は出ない。体温調節はエクリン腺（アポクリン腺ではない）。"
+    ]
+  },
+  {
+    id: 3, cat: "皮膚解剖",
+    color: "#e6f0ff", textColor: "#2b6cb0",
+    title: "皮膚の病変用語",
+    summary: "水疱＝漿液。膿疱＝膿。びらん＝表皮欠損。潰瘍＝真皮以下欠損。",
+    detail: [
+      "紅斑：血管拡張による発赤。硝子圧法で消える。",
+      "紫斑：真皮の出血。硝子圧法で消えない（重要）。",
+      "水疱：漿液が貯留した隆起病変（膿ではない）。",
+      "膿疱：膿が貯留した隆起病変。",
+      "びらん：表皮のみの欠損。痕が残りにくい。",
+      "潰瘍：真皮以下の欠損。瘢痕が残る。",
+      "鱗屑：角質が異常に剥離・堆積。乾癬などで見られる。"
+    ]
+  },
+  {
+    id: 4, cat: "皮膚解剖",
+    color: "#e6f0ff", textColor: "#2b6cb0",
+    title: "皮膚のバリア機能と保湿",
+    summary: "NMF（天然保湿因子）・皮脂膜・細胞間脂質の3要素がうるおいを保つ",
+    detail: [
+      "NMF（Natural Moisturizing Factor）：アミノ酸・尿素・乳酸などがフィラグリン由来で生成。角質内を保湿。",
+      "細胞間脂質：セラミドが主成分。ラメラ構造でバリアを形成。",
+      "皮脂膜：皮脂＋汗が乳化されたもの。弱酸性（pH4.5〜6.0）を維持。",
+      "洗いすぎ・アルカリ性石鹸でバリア破壊→TEWL（経皮水分蒸散量）増加。",
+      "TEWL増大＝バリア機能低下の指標。"
+    ]
+  },
+  {
+    id: 5, cat: "褥瘡",
+    color: "#fff0e6", textColor: "#c05621",
+    title: "褥瘡の発生機序（外力の種類）",
+    summary: "圧迫・ずれ・摩擦の3つ。ずれが最もダメージが大きい。",
+    detail: [
+      "圧迫：垂直方向の力。毛細血管閉塞→虚血。32mmHg以上で閉塞とされる。",
+      "ずれ：皮膚表面と深部組織が反対方向に引っ張られる力。深部組織損傷（DTI）の主因。",
+      "摩擦：皮膚表面の擦れ。表皮剥離を起こす。",
+      "ずれ力はベッドの頭側挙上（30度超）で増大。フットレスト活用・スモールシフト法で軽減。",
+      "内的要因：低栄養・低アルブミン・貧血・浮腫・失禁・知覚低下・加齢。"
+    ]
+  },
+  {
+    id: 6, cat: "褥瘡",
+    color: "#fff0e6", textColor: "#c05621",
+    title: "DESIGN-R 2020（褥瘡評価スケール）",
+    summary: "深さ・滲出液・大きさ・炎症/感染・肉芽・壊死・ポケットを点数化",
+    detail: [
+      "D（Depth）：深さ。0〜5。DTIはD=DとしてスコアなしだがDTI表記。",
+      "E（Exudate）：滲出液量。0・1・3・6の4段階。",
+      "S（Size）：長径×短径。0・3・6・8・9・12の6段階。",
+      "I（Inflammation/Infection）：炎症・感染。0・1・3・9。",
+      "G（Granulation）：肉芽組織。0・1・3・4・5・6。",
+      "N（Necrotic tissue）：壊死組織。0・3・6。",
+      "P（Pocket）：ポケット。0・6・9・12・24。",
+      "小文字（d,e,s,i,g,n,p）＝軽度。大文字（D,E,S,I,G,N,P）＝重度。合計スコアが高いほど重症。",
+      "治癒方向＝スコアが下がる。悪化＝スコアが上がる。"
+    ]
+  },
+  {
+    id: 7, cat: "褥瘡",
+    color: "#fff0e6", textColor: "#c05621",
+    title: "褥瘡の予防ケア（体位変換・ポジショニング）",
+    summary: "2時間ごと体位変換が基本。30度側臥位・スモールシフト・高規格マットレスを活用",
+    detail: [
+      "体位変換：2時間ごとが標準。高規格マット使用時は4時間まで延長可。",
+      "30度側臥位：大転子部への圧を避けられる。腸骨・仙骨・踵骨を守る。",
+      "スモールシフト（マイクロポジショニング）：15〜30度の小さな傾きで圧分散。",
+      "踵骨：浮かせることが原則。クッションで下腿全体を支持（踵に直接触れないよう）。",
+      "ずれ対策：ベッド挙上は30度以下 or スニッフィングポジション採用。フットレスト活用。",
+      "栄養：アルブミン3.5g/dL以上を目指す。亜鉛・ビタミンC・アルギニンが創傷治癒に有効。"
+    ]
+  },
+  {
+    id: 8, cat: "褥瘡",
+    color: "#fff0e6", textColor: "#c05621",
+    title: "褥瘡の深達度分類（NPUAP/EPUAP）",
+    summary: "ステージI〜IVとDTI、分類不能の6カテゴリ",
+    detail: [
+      "Stage I：発赤あり・指圧で白くなる消退性紅斑。皮膚表面は無傷。",
+      "Stage II：表皮〜真皮浅層の損傷。水疱・びらん・浅い潰瘍。",
+      "Stage III：真皮全層〜皮下組織。筋膜は超えない。深い潰瘍。",
+      "Stage IV：筋肉・骨・腱・関節包に達する。",
+      "DTI（深部組織損傷）：皮膚表面は無傷に見えるが内部が損傷。暗紫色・硬結・有痛性。",
+      "分類不能：壊死組織で覆われ深さが判定不能。デブリードマン後に再評価。"
+    ]
+  },
+  {
+    id: 9, cat: "創傷治癒",
+    color: "#e6ffe6", textColor: "#276749",
+    title: "創傷治癒の3相（炎症期・増殖期・成熟期）",
+    summary: "炎症→増殖→成熟の順。それぞれの期間と役割を覚える。",
+    detail: [
+      "炎症期（0〜3日）：止血→血小板凝集→マクロファージが清浄化。赤・腫・熱・痛が特徴。",
+      "増殖期（3〜21日）：線維芽細胞がコラーゲン産生。肉芽組織形成。上皮化が進む。",
+      "成熟期（21日〜数年）：コラーゲンの再構築。瘢痕が白くなり成熟。",
+      "湿潤環境（モイストヒーリング）：乾燥より3倍速く上皮化。growth factorを保持。",
+      "感染は治癒を止める。バイオフィルム形成→抗菌ドレッシングや機械的デブリードマン。"
+    ]
+  },
+  {
+    id: 10, cat: "創傷治癒",
+    color: "#e6ffe6", textColor: "#276749",
+    title: "創傷のデブリードマン",
+    summary: "壊死組織を取り除いて治癒促進。方法は外科的・自己融解・機械的・生物学的の4種",
+    detail: [
+      "外科的デブリードマン：最速。メス・ハサミで除去。感染や大量壊死に適応。",
+      "自己融解的デブリードマン：ハイドロコロイド等で湿潤環境を作り、体内酵素で融解。痛みが少ない。",
+      "機械的デブリードマン：wet-to-dry法・洗浄。選択性がなく正常組織も傷つける欠点。",
+      "生物学的デブリードマン（ウジ療法）：無菌幼虫が壊死組織のみ食べる。",
+      "壊死組織の色：黒（乾性壊死）→黄（スラフ）→赤（健康な肉芽）→ピンク（上皮化）。"
+    ]
+  },
+  {
+    id: 11, cat: "創傷治癒",
+    color: "#e6ffe6", textColor: "#276749",
+    title: "ドレッシング材の種類と特徴",
+    summary: "滲出液量・感染の有無・創の深さで選択する",
+    detail: [
+      "ハイドロコロイド：滲出液少〜中。自己融解促進。皮膚への密着性高い。感染創には禁忌。",
+      "ハイドロジェル：乾燥創・壊死の保湿・軟化に有効。滲出液が多い創には不向き。",
+      "アルジネート（海藻繊維）：滲出液多い創に適用。吸水力高い。止血効果あり。",
+      "フォーム材（ポリウレタンフォーム）：滲出液中〜多。クッション性あり。感染創は不可。",
+      "銀含有ドレッシング：感染・バイオフィルムに使用。長期使用は細胞毒性の懸念。",
+      "ドレッシング交換頻度：感染創は毎日〜1日2回。非感染創は滲出液に応じて3〜7日ごと。"
+    ]
+  },
+  {
+    id: 12, cat: "ストーマ",
+    color: "#fce8f3", textColor: "#97266d",
+    title: "ストーマの種類と排泄物の性状",
+    summary: "部位が回腸＝水様〜泥状、横行結腸＝泥状、S状結腸＝有形便",
+    detail: [
+      "回腸ストーマ（イレオストミー）：水様〜泥状。消化酵素を含み皮膚障害が起きやすい。",
+      "上行結腸ストーマ：泥状〜軟便。",
+      "横行結腸ストーマ（トランスバースコロストミー）：泥状便。",
+      "下行・S状結腸ストーマ（シグモイドコロストミー）：有形便に近い。",
+      "ウロストミー（尿路ストーマ）：尿が排泄。回腸導管が最多。",
+      "排泄物が水様ほど皮膚保護剤の溶解が早い→交換頻度が上がる。皮膚保護剤の選択が重要。"
+    ]
+  },
+  {
+    id: 13, cat: "ストーマ",
+    color: "#fce8f3", textColor: "#97266d",
+    title: "ストーマサイトマーキング",
+    summary: "術前に最適な造設位置を決める。クリーブランドクリニック基準が有名。",
+    detail: [
+      "クリーブランドクリニック基準：①臍より低い、②腹部脂肪頂点、③皮膚のくびれ・瘢痕・骨突起を避ける、④患者が自己管理できる位置、⑤腹直筋を貫く。",
+      "患者が座位・立位・臥位全てで確認できる位置が理想。",
+      "マーキングは術前日に行い、患者・術者・WOCナースが合意する。",
+      "造設後のストーマ高さ：結腸は2〜3cm、回腸は2〜3cm（高め）が望ましい。",
+      "平坦〜陥凹ストーマは凸型面板（コンベックス）を使用して密着性を確保。"
+    ]
+  },
+  {
+    id: 14, cat: "ストーマ",
+    color: "#fce8f3", textColor: "#97266d",
+    title: "ストーマ装具の構造と選択",
+    summary: "単品系・二品系、皮膚保護剤の役割を理解する",
+    detail: [
+      "単品系（ワンピース）：面板とパウチが一体。交換が容易。特に回腸・体型変化に対応しにくい場面も。",
+      "二品系（ツーピース）：面板とパウチが分離。パウチのみ交換可→経済的・皮膚保護に優れる。",
+      "皮膚保護剤の成分：CMC（カルボキシメチルセルロース）・ペクチン・ゼラチンなど親水性高分子。",
+      "皮膚保護剤の役割：滲出液吸収・皮膚保護・排泄物からの隔離・フィット性の確保。",
+      "ホールカットサイズ：ストーマ径より1〜2mm大きく切る（大きすぎると周囲皮膚が露出）。",
+      "交換目安：滲出液が縁から1/3溶解した時点が交換サイン。"
+    ]
+  },
+  {
+    id: 15, cat: "ストーマ",
+    color: "#fce8f3", textColor: "#97266d",
+    title: "ストーマ合併症",
+    summary: "早期：浮腫・壊死・出血。晩期：脱出・陥凹・傍ストーマヘルニア・狭窄",
+    detail: [
+      "術直後浮腫：正常。1〜2週で縮小。ストーマ径の再測定が必要。",
+      "ストーマ壊死：血流不足。黒〜暗紫色。早急に外科的評価。",
+      "傍ストーマ皮膚炎：①排泄物接触性、②アレルギー性、③感染性（カンジダ等）。",
+      "カンジダ皮膚炎：粉状の白斑→抗真菌剤（クロトリマゾール等）の粉末を使用。",
+      "脱出（プロラプス）：特に横行結腸ループストーマに多い。",
+      "陥凹（リトラクション）：肥満・短い腸管。凸型面板・ベルト・ペーストで対応。",
+      "傍ストーマヘルニア：腸管が腹壁を圧迫して膨隆。手術適応になることも。"
+    ]
+  },
+  {
+    id: 16, cat: "排尿障害",
+    color: "#f0f0ff", textColor: "#553c9a",
+    title: "蓄尿と排尿の神経支配",
+    summary: "蓄尿は交感神経（β受容体で膀胱弛緩・α受容体で尿道収縮）、排尿は副交感神経",
+    detail: [
+      "蓄尿期：交感神経（下腹神経T10-L2）→膀胱β受容体刺激→膀胱壁弛緩。α受容体→内尿道括約筋収縮。",
+      "排尿期：副交感神経（骨盤神経S2-4）→膀胱muscarin受容体（M3）刺激→膀胱収縮。",
+      "外尿道括約筋：体性神経（陰部神経）→随意的にコントロール。",
+      "仙髄（S2-4）：排尿中枢（下位）。橋排尿中枢（PMC）：上位制御。",
+      "大脳皮質・前頭葉：排尿抑制の最上位。認知症では機能低下→切迫性尿失禁。"
+    ]
+  },
+  {
+    id: 17, cat: "排尿障害",
+    color: "#f0f0ff", textColor: "#553c9a",
+    title: "尿失禁の種類と特徴",
+    summary: "腹圧性・切迫性・溢流性・機能性・混合性の5種類",
+    detail: [
+      "腹圧性尿失禁：咳・くしゃみ・運動で腹圧が上がり漏れる。骨盤底筋の弱体化。産後・肥満・閉経後の女性に多い。治療：骨盤底筋訓練（ケーゲル体操）。",
+      "切迫性尿失禁：急激な尿意→我慢できず漏れる。過活動膀胱（OAB）が原因。治療：抗コリン薬（ソリフェナシン等）・β3刺激薬。",
+      "溢流性尿失禁：尿が溢れ出る。低活動膀胱・前立腺肥大・神経因性膀胱。残尿大量。治療：間欠自己導尿（CIC）。",
+      "機能性尿失禁：膀胱機能は正常。認知症・移動障害でトイレ動作ができない。環境整備・排尿誘導。",
+      "混合性：腹圧性＋切迫性が混在。女性に多い。"
+    ]
+  },
+  {
+    id: 18, cat: "排尿障害",
+    color: "#f0f0ff", textColor: "#553c9a",
+    title: "過活動膀胱（OAB）の診断と治療",
+    summary: "切迫性尿意が必須症状。頻尿・夜間頻尿・切迫性尿失禁を伴うことが多い",
+    detail: [
+      "診断基準：切迫性尿意が必須。頻尿（≧8回/日）・夜間頻尿・切迫性尿失禁が随伴。",
+      "OABスコア（OABSS）：4項目（昼間頻尿・夜間頻尿・切迫尿意・切迫性尿失禁）を点数化。3点以上でOAB疑い。切迫尿意は必須。",
+      "行動療法：膀胱訓練（徐々に排尿間隔延長）・骨盤底筋訓練・飲水コントロール。",
+      "薬物療法：抗コリン薬（口渇・便秘・認知機能低下に注意）、β3受容体刺激薬（ビベグロン・ミラベグロン：心血管系注意）。",
+      "難治例：ボトックス膀胱内注入・仙骨神経刺激療法（SNM）。"
+    ]
+  },
+  {
+    id: 19, cat: "排尿障害",
+    color: "#f0f0ff", textColor: "#553c9a",
+    title: "間欠自己導尿（CIC）の方法と適応",
+    summary: "低活動膀胱・神経因性膀胱での排尿管理。残尿300mL以上が目安",
+    detail: [
+      "適応：残尿多量（≧100〜150mL）・自排尿困難・神経因性膀胱・前立腺肥大術後。",
+      "目標残尿：100mL未満を目指す。",
+      "導尿間隔：1日4〜6回（500mL/回以下になるよう調整）。",
+      "飲水量：1500〜2000mL/日が基本（導尿回数・残尿量で調整）。",
+      "清潔操作 vs 無菌操作：在宅CICは清潔操作でよい（感染リスクはカテーテル留置より低い）。",
+      "カテーテルの種類：親水性コーティング型は摩擦少なく尿道損傷リスク低。"
+    ]
+  },
+  {
+    id: 20, cat: "排便障害",
+    color: "#fffbe6", textColor: "#744210",
+    title: "排便の神経支配と機序",
+    summary: "直腸に便が溜まると仙髄反射→直腸収縮・内肛門括約筋弛緩。便意は大脳皮質が感知。",
+    detail: [
+      "直腸に便が充満→直腸壁が伸展→仙髄（S2-4）反射→直腸収縮・内肛門括約筋弛緩（直腸肛門反射）。",
+      "便意の自覚：大脳皮質が直腸内圧上昇を認識して生じる。単純な反射ではない。",
+      "外肛門括約筋：随意筋（陰部神経）。意識的に収縮させて排便を我慢できる。",
+      "排便時：いきみ（バルサルバ法）→腹圧上昇→直腸収縮→外括約筋弛緩→排便。",
+      "脊髄損傷（仙髄以上）：直腸肛門反射は残るが便意なし→反射性排便（Digital Stimulation等）。",
+      "仙髄損傷：反射消失→弛緩性便秘→摘便・腹部マッサージ・下剤。"
+    ]
+  },
+  {
+    id: 21, cat: "排便障害",
+    color: "#fffbe6", textColor: "#744210",
+    title: "便秘の種類と治療",
+    summary: "機能性（弛緩性・痙攣性・直腸性）と器質性に分類。原因に合わせた治療が重要",
+    detail: [
+      "弛緩性便秘：腸蠕動低下。高齢者・臥床・低繊維食。治療：食物繊維・水分・腸蠕動促進薬（センノシド等）。",
+      "痙攣性便秘：IBS（過敏性腸症候群）型。ウサギ状便。ストレスが関与。刺激性下剤は悪化。",
+      "直腸性便秘（排便障害型）：直腸に便が来ても便意を感じにくい。高齢者・習慣的な排便抑制。摘便・グリセリン浣腸が有効。",
+      "器質性便秘：大腸がん・腸閉塞。まず原疾患の治療。",
+      "ブリストルスケール：1（コロコロ硬便）〜7（水様便）。正常は3〜5。",
+      "浸透圧性下剤（酸化マグネシウム）：習慣性少ない。腎障害では高マグネシウム血症に注意。"
+    ]
+  },
+  {
+    id: 22, cat: "排便障害",
+    color: "#fffbe6", textColor: "#744210",
+    title: "失禁関連皮膚炎（IAD）の特徴と予防",
+    summary: "便・尿の接触による皮膚炎。スキンケア（洗浄・保護・保湿）が基本",
+    detail: [
+      "IAD（Incontinence-Associated Dermatitis）：尿・便・汗による皮膚の炎症。",
+      "特徴：会陰部・臀部・鼠径部の発赤・びらん。びまん性（境界不明瞭）が特徴。褥瘡との鑑別が重要。",
+      "褥瘡との違い：IADは骨突起部以外にも発生。形状が不整形。",
+      "スキンケアの3原則：①洗浄（微温湯・弱酸性洗浄剤で優しく）②保湿（セラミド配合クリーム等）③保護（撥水性クリーム・パウダー・皮膜剤）。",
+      "排泄管理：吸水パッドの適切な使用・おむつ内環境の湿度管理。",
+      "皮膚保護剤（プロシールド等）：防湿バリアとして皮膚を保護。"
+    ]
+  },
+  {
+    id: 23, cat: "フットケア",
+    color: "#e8f8ee", textColor: "#22543d",
+    title: "糖尿病性足病変（糖尿病足）の3大要因",
+    summary: "神経障害・血流障害・感染の3つが相互に絡み合う",
+    detail: [
+      "末梢神経障害：感覚鈍麻→痛みを感じず傷に気づかない。自律神経障害→発汗低下→皮膚乾燥・亀裂。運動神経障害→筋力低下→足変形（ハンマートゥ等）。",
+      "末梢動脈疾患（PAD）：血流不足→虚血性潰瘍・壊疽。ABI（足首上腕血圧比）0.9以下で疑い。",
+      "感染：免疫機能低下・高血糖環境で感染しやすく悪化しやすい。骨髄炎まで進展することも。",
+      "ワグナー分類：0〜5。0は前潰瘍・ハイリスク。5は壊疽（切断を要する）。",
+      "フットケアの基本：毎日の足の観察・適切な爪切り・保湿・適切な靴の選択。"
+    ]
+  },
+  {
+    id: 24, cat: "フットケア",
+    color: "#e8f8ee", textColor: "#22543d",
+    title: "爪のケアと陥入爪",
+    summary: "爪はスクエアオフカットが基本。陥入爪はコットンパッキング・矯正で対応",
+    detail: [
+      "正しい爪切り：スクエアオフカット（角を残す直線切り）。深爪・丸切りは陥入爪の原因。",
+      "陥入爪（巻き爪・陥入爪）：爪が皮膚に食い込む。痛み・感染の原因。",
+      "コットンパッキング：爪と皮膚の間に細いコットンを詰めて圧迫を軽減。",
+      "弾性ワイヤー矯正（3TO法等）：爪に形状記憶ワイヤーで矯正。",
+      "胼胝（たこ）・鶏眼（魚の目）：機械的刺激が原因。フットファイルで削る。鶏眼は芯がある。",
+      "保湿：特にかかとの角質化・亀裂予防。尿素配合クリームが有効。入浴後が吸収良い。"
+    ]
+  },
+  {
+    id: 25, cat: "スキンケア",
+    color: "#fef9e7", textColor: "#7d6608",
+    title: "スキンケアの基本3原則",
+    summary: "洗浄・保湿・保護。皮膚のpHを弱酸性（4.5〜6.0）に保つことが重要",
+    detail: [
+      "洗浄：微温湯（38〜40℃）＋弱酸性・低刺激の洗浄剤を泡立てて使用。摩擦を最小に。",
+      "保湿：入浴後10分以内（経皮水分蒸散が多い間）に保湿剤塗布。セラミド・ヘパリン類似物質・尿素等。",
+      "保護：物理的（圧・摩擦）・化学的（排泄物・薬剤）刺激から守る。撥水性クリーム・皮膜剤。",
+      "弱酸性洗浄剤のpH：4.0〜6.0が理想。アルカリ性石鹸（pH9〜10）は皮膚保護膜を壊す。",
+      "温度：熱いお湯（42℃以上）はかゆみ誘発・バリア破壊。ぬるま湯推奨。",
+      "擦り洗い禁止：特に高齢者・TEWL増加リスク患者。"
+    ]
+  },
+  {
+    id: 26, cat: "スキンケア",
+    color: "#fef9e7", textColor: "#7d6608",
+    title: "医療関連機器圧迫創傷（MDRPU）",
+    summary: "医療機器（マスク・チューブ・装具）による圧迫創傷。予防には緩衝材と定期観察が重要",
+    detail: [
+      "MDRPU（Medical Device Related Pressure Ulcer）：NPUAPが2013年に定義。",
+      "主な原因機器：人工呼吸器マスク、経鼻カテーテル、ギプス・装具、ストッキング・深部静脈血栓予防装置、酸素チューブ。",
+      "好発部位：機器接触部の骨突起部。鼻梁・耳介・後頭部・踵骨など。",
+      "予防：①皮膚保護材（ポリウレタンフォーム）を機器接触部に貼付、②定期的な位置変換・除圧、③サイズ適合の確認。",
+      "観察：少なくとも2〜4時間ごとに機器接触部を観察。",
+      "発見後対応：機器変更・除圧 or 代替機器検討。"
+    ]
+  },
+  {
+    id: 27, cat: "スキンケア",
+    color: "#fef9e7", textColor: "#7d6608",
+    title: "スキンテア（皮膚裂傷）",
+    summary: "ずれ・摩擦による皮膚裂傷。高齢者・ステロイド長期使用者に多い",
+    detail: [
+      "スキンテア（Skin Tear）：ずれや摩擦によって皮膚が裂けるように傷つく。表皮・真皮の断裂。",
+      "高リスク者：高齢者・ステロイド長期使用・抗凝固薬内服・低栄養・浮腫のある患者。",
+      "好発部位：前腕・下腿（四肢に多い）。",
+      "ISTAP分類（2018）：1a（皮弁あり・傷口を覆える）→1b（覆えない）→2a（皮弁25%以上）→2b（25%未満）→3（皮弁なし）。",
+      "応急処置：生食洗浄→皮弁を元に戻す→シリコン系ドレッシング（ノンアドヒーレントガーゼ）で保護。",
+      "予防：四肢へのロングスリーブ着用・ベッド柵クッション・移乗時の抱え上げ禁止（ずり落としで発生）。"
+    ]
+  },
+  {
+    id: 28, cat: "栄養",
+    color: "#fff5f5", textColor: "#c53030",
+    title: "低栄養と褥瘡・創傷治癒への影響",
+    summary: "アルブミン低下・体重減少が創傷治癒を遅延。NSTとの連携が重要",
+    detail: [
+      "低栄養の影響：免疫機能低下・コラーゲン合成低下・浮腫（低アルブミン血症）→創傷治癒遅延。",
+      "アルブミン：3.5g/dL未満で低栄養。褥瘡発生リスク・治癒遅延の指標。ただし半減期20日（急性期を反映しにくい）。",
+      "CONUT（Controlling Nutritional Status）スコア、MNA（Mini Nutritional Assessment）等でスクリーニング。",
+      "創傷治癒に重要な栄養素：タンパク質（1.2〜1.5g/kg/日）・亜鉛・ビタミンC・ビタミンA・アルギニン。",
+      "亜鉛：コラーゲン合成・免疫に関与。不足→肉芽形成不全・皮膚炎。",
+      "NST（栄養サポートチーム）：医師・看護師・栄養士・薬剤師等が連携。経腸栄養が第一選択（腸を使う）。"
+    ]
+  },
+  {
+    id: 29, cat: "医療制度",
+    color: "#f0f7ff", textColor: "#1a365d",
+    title: "WOC認定看護師の役割と資格",
+    summary: "皮膚・排泄ケア認定看護師。3分野（創傷・オストミー・失禁）を横断的に担当",
+    detail: [
+      "正式名称：皮膚・排泄ケア認定看護師（WOC：Wound Ostomy Continence）。",
+      "認定機関：日本看護協会 認定看護師認定審査。",
+      "教育課程：特定行為研修と組み合わせた新カリキュラム（2020年〜）。",
+      "特定行為（WOC関連）：創傷に対する陰圧閉鎖療法、褥瘡・慢性創傷の治療における血流のない壊死組織のデブリードマン、など。",
+      "活動場所：病院・在宅・老人施設・外来など多岐にわたる。",
+      "コンサルテーション：他職種・他病棟からの相談を受け、ケアの質向上を支援。"
+    ]
+  },
+  {
+    id: 30, cat: "医療制度",
+    color: "#f0f7ff", textColor: "#1a365d",
+    title: "在宅における創傷・ストーマ管理の制度",
+    summary: "訪問看護・医療保険・介護保険の活用。ストーマ装具は医療費控除の対象",
+    detail: [
+      "訪問看護：医療保険（要介護者でも医療的処置があれば医療保険優先）または介護保険。",
+      "特別訪問看護指示書：急性増悪時に医師が交付→医療保険で週4日以上の訪問が可能。",
+      "ストーマ用品（装具）：身体障害者手帳の交付を受けると日常生活用具として給付される。",
+      "身体障害者手帳：永久ストーマ→4級。尿失禁のみ→4級。両方→3級以上になることも。",
+      "在宅での指導：退院前から患者・家族への自己管理指導（ADL・認知機能を考慮）。",
+      "テープ・医療材料の費用：創傷処置の費用は在宅では処方・訪問看護で対応。"
+    ]
+  },
+  {
+    id: 31, cat: "褥瘡",
+    color: "#fff0e6", textColor: "#c05621",
+    title: "リスクアセスメントスケール",
+    summary: "ブレーデンスケール（最多使用）・OHスケール・K式スケールの3つを覚える",
+    detail: [
+      "ブレーデンスケール：6項目（知覚認知・湿潤・活動性・可動性・栄養・摩擦とずれ）。最高23点、低いほど高リスク。18点以下でリスクあり（施設により異なる）。",
+      "OHスケール（大浦・堀田式）：4項目（自力体位変換・病的骨突出・浮腫・関節拘縮）。在宅・高齢者施設向け。10点以上で高リスク。",
+      "K式スケール：褥瘡発生後の状態・治癒経過評価スケール（DESIGN以外の施設で使用）。",
+      "「DESIGN-R」は発生後の評価。「ブレーデン」は発生前のリスク評価。役割が違う点に注意。"
+    ]
+  },
+  {
+    id: 32, cat: "創傷治癒",
+    color: "#e6ffe6", textColor: "#276749",
+    title: "陰圧閉鎖療法（NPWT）",
+    summary: "創を密閉して陰圧（−80〜−125mmHg）をかける。肉芽形成促進・滲出液排出が目的",
+    detail: [
+      "適応：深い褥瘡・術後創離開・糖尿病性足潰瘍・複雑創傷。",
+      "禁忌：未治療の骨髄炎・悪性腫瘍のある創・ドレッシング固定が困難な創・血管・臓器露出。",
+      "効果：①肉芽形成促進、②浮腫軽減（浸出液除去）、③細菌量の減少、④創収縮。",
+      "圧設定：連続−125mmHg または間欠モード（5分ON/2分OFF）。痛みがある場合は−80mmHg。",
+      "フォームドレッシング（黒スポンジ）：多孔性。肉芽形成促進に優れる。",
+      "ガーゼドレッシング（白）：肉芽への食い込みが少ない。痛みが出やすい患者・肉芽が旺盛な場合に使用。",
+      "交換頻度：通常48〜72時間ごと（感染があれば毎日〜24時間ごと）。"
+    ]
+  },
+  {
+    id: 33, cat: "排尿障害",
+    color: "#f0f0ff", textColor: "#553c9a",
+    title: "膀胱訓練と骨盤底筋訓練",
+    summary: "行動療法の2本柱。切迫性・腹圧性それぞれに適した訓練を選ぶ",
+    detail: [
+      "膀胱訓練：切迫性尿失禁・OABに有効。排尿間隔を10〜15分ずつ延長していく。目標は3〜4時間間隔。",
+      "骨盤底筋訓練（ケーゲル体操）：腹圧性尿失禁・切迫性尿失禁どちらにも有効。",
+      "骨盤底筋の収縮：肛門・膣を締める感覚。腹筋・臀筋・大腿筋は使わない。",
+      "訓練方法：5〜10秒間収縮→5〜10秒間弛緩を1セット。1日3回×10セット。効果出るまで8〜12週。",
+      "バイオフィードバック：筋活動をモニターで確認しながら訓練。効果が高い。",
+      "排尿日誌：排尿時刻・量・尿意・失禁を記録。訓練効果の確認と評価に使用。"
+    ]
+  },
+  {
+    id: 34, cat: "ストーマ",
+    color: "#fce8f3", textColor: "#97266d",
+    title: "ストーマ患者の退院指導",
+    summary: "自己管理を目指す。装具交換・緊急時対応・食事・社会復帰を指導する",
+    detail: [
+      "装具交換指導：見て・触って・自分でできる段階を踏む（見学→介助→自立）。",
+      "入浴：装具を外したまま入浴可。ストーマから湯が入っても腸内なので問題なし。",
+      "食事：特に制限はないが、コロストミーはガス産生食品（豆・炭酸）に注意。イレオストミーは消化しにくい食品（キノコ・こんにゃく）は詰まりの原因。",
+      "臭い対策：密閉式パウチ使用・消臭剤（リシールター等）使用・脱臭孔付きパウチ。",
+      "旅行・外出：替えの装具は2〜3セット持参。飛行機では機内持ち込み可（医師の書類があると安心）。",
+      "性生活：医師・WOCナースに相談。ストーマは性行為の障壁にはならない。",
+      "緊急時：ストーマが腫れて黒くなった→救急受診。装具が外れた→清潔なタオル等で保護。"
+    ]
+  }
+];
+
+// ===== まとめ辞書 状態管理 =====
+let matomeCurrentCat = 'すべて';
+let matomeSearchTerm = '';
+
+// ===== まとめカテゴリ一覧取得 =====
+function getMatomeCategories() {
+  const cats = ['すべて'];
+  matomeData.forEach(function(m) {
+    if (!cats.includes(m.cat)) cats.push(m.cat);
+  });
+  return cats;
+}
+
+// カテゴリの色マッピング
+function getCatStyle(cat) {
+  const map = {
+    '皮膚解剖': { bg: '#e6f0ff', color: '#2b6cb0' },
+    '褥瘡':     { bg: '#fff0e6', color: '#c05621' },
+    '創傷治癒': { bg: '#e6ffe6', color: '#276749' },
+    'ストーマ': { bg: '#fce8f3', color: '#97266d' },
+    '排尿障害': { bg: '#f0f0ff', color: '#553c9a' },
+    '排便障害': { bg: '#fffbe6', color: '#744210' },
+    'フットケア': { bg: '#e8f8ee', color: '#22543d' },
+    'スキンケア': { bg: '#fef9e7', color: '#7d6608' },
+    '栄養':     { bg: '#fff5f5', color: '#c53030' },
+    '医療制度': { bg: '#f0f7ff', color: '#1a365d' }
+  };
+  return map[cat] || { bg: '#f0f0f0', color: '#4a5568' };
+}
+
+// ===== まとめタブ レンダリング =====
+function renderMatome() {
+  // カテゴリチップ
+  const catsEl = document.getElementById('matome-cats');
+  const allCats = getMatomeCategories();
+  catsEl.innerHTML = allCats.map(function(c) {
+    const active = c === matomeCurrentCat ? ' active' : '';
+    return '<button class="matome-cat' + active + '" onclick="setMatomeCat(\'' + c + '\')">' + c + '</button>';
+  }).join('');
+
+  filterMatome();
+}
+
+function setMatomeCat(cat) {
+  matomeCurrentCat = cat;
+  renderMatome();
+}
+
+function filterMatome() {
+  const term = (document.getElementById('matome-search-input').value || '').toLowerCase();
+  matomeSearchTerm = term;
+
+  const filtered = matomeData.filter(function(m) {
+    const catMatch = matomeCurrentCat === 'すべて' || m.cat === matomeCurrentCat;
+    if (!catMatch) return false;
+    if (!term) return true;
+    const inTitle = m.title.toLowerCase().includes(term);
+    const inSummary = m.summary.toLowerCase().includes(term);
+    const inDetail = m.detail.join(' ').toLowerCase().includes(term);
+    return inTitle || inSummary || inDetail;
+  });
+
+  const countEl = document.getElementById('matome-count');
+  countEl.textContent = filtered.length + ' 件';
+
+  const listEl = document.getElementById('matome-list');
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="matome-empty">🔍 見つかりませんでした<br><span style="font-size:12px">別のキーワードで検索してみてください</span></div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(function(m) {
+    const st = getCatStyle(m.cat);
+    const detailHtml = m.detail.map(function(d) {
+      return '<div class="matome-detail-item">' + d + '</div>';
+    }).join('');
+    return [
+      '<div class="matome-card" id="mc-' + m.id + '">',
+      '  <div class="matome-card-head" onclick="toggleMatomeCard(' + m.id + ')">',
+      '    <div style="flex:1">',
+      '      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">',
+      '        <span class="matome-badge" style="background:' + st.bg + ';color:' + st.color + '">' + m.cat + '</span>',
+      '        <span class="matome-card-arrow" id="arrow-' + m.id + '">▼</span>',
+      '      </div>',
+      '      <div class="matome-card-title">' + m.title + '</div>',
+      '      <div class="matome-card-summary">' + m.summary + '</div>',
+      '    </div>',
+      '  </div>',
+      '  <div class="matome-card-detail" id="detail-' + m.id + '">',
+      detailHtml,
+      '  </div>',
+      '</div>'
+    ].join('');
+  }).join('');
+}
+
+function toggleMatomeCard(id) {
+  const card = document.getElementById('mc-' + id);
+  const detail = document.getElementById('detail-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  if (!card || !detail) return;
+  const isOpen = card.classList.contains('open');
+  if (isOpen) {
+    card.classList.remove('open');
+    detail.style.display = 'none';
+    if (arrow) arrow.style.transform = '';
+  } else {
+    card.classList.add('open');
+    detail.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  }
 }
 
 // ===== 起動 =====
