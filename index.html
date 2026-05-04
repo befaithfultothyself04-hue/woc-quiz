@@ -2158,6 +2158,70 @@ const matomeData = [
       '特別訪問看護指示書：急性増悪時に医師が交付→医療保険で週4日以上の訪問が可能（通常は週3日まで）。',
       '退院前から患者・家族への自己管理指導を開始する。ADL・認知機能を考慮して指導計画を立てる。'
     ]
+  },
+
+  // ===== 追加資料（参考書より） =====
+  {
+    id: 31, cat: 'ストーマ',
+    title: '直腸癌の手術と術式の選択',
+    summary: '術式は腫瘍の位置で決まる。肛門括約筋が温存できればストーマは不要。できなければ永久ストーマ（Miles手術）となる。',
+    html: `
+      <div class="m-section">直腸の部位と腫瘍の位置</div>
+      <table class="m-table">
+        <tr><th>部位</th><th>範囲</th></tr>
+        <tr><td><b>RS</b>（直腸S部）</td><td>岬角〜第2仙椎（S2）下縁</td></tr>
+        <tr><td><b>Ra</b>（上部直腸）</td><td>〜腹膜反転部</td></tr>
+        <tr><td><b>Rb</b>（下部直腸）</td><td>〜恥骨直腸筋付着部上縁</td></tr>
+        <tr><td><b>P</b>（肛門管）</td><td>〜肛門</td></tr>
+      </table>
+
+      <div class="m-section">主な術式の比較</div>
+      <table class="m-table">
+        <tr><th>術式</th><th>特徴</th><th>肛門括約筋</th><th>ストーマ</th><th>適応</th></tr>
+        <tr>
+          <td><b>高位前方切除術</b></td>
+          <td>腹膜反転部より口側で吻合。比較的低侵襲。</td>
+          <td><span class="m-ok">温存</span></td>
+          <td><span class="m-ok">不要</span></td>
+          <td>RS・Ra</td>
+        </tr>
+        <tr>
+          <td><b>低位前方切除術</b></td>
+          <td>腹部からアプローチ。自動吻合器で残った直腸と結腸を吻合する。</td>
+          <td><span class="m-ok">温存</span></td>
+          <td><span class="m-ok">不要</span></td>
+          <td>Ra・Rb</td>
+        </tr>
+        <tr>
+          <td><b>直腸切断術</b><br>（Miles手術）</td>
+          <td>腹部・会陰部からアプローチ。肛門括約筋も含め直腸を切断。肛門は閉鎖され会陰創が残る。</td>
+          <td><span class="m-warn">摘出</span></td>
+          <td><span class="m-warn">永久ストーマ必要</span></td>
+          <td>Rb・P</td>
+        </tr>
+        <tr>
+          <td><b>Hartmann手術</b></td>
+          <td>直腸を切除し口側に人工肛門を造設。肛門側は閉鎖。緊急手術や全身状態不良時に行う。</td>
+          <td>状況による</td>
+          <td>一時的ストーマ</td>
+          <td>緊急・高リスク例</td>
+        </tr>
+      </table>
+
+      <div class="m-section">WOCとして重要なポイント</div>
+      <div class="m-box m-box-blue">
+        📌 <b>基本原則</b>：直腸癌でも腸管切除＋リンパ節郭清が基本。術式は腫瘍の位置（RS・Ra・Rb・P）で決まる。
+      </div>
+      <div class="m-box m-box-yellow">
+        ⚠️ <b>自律神経温存術</b>：排便・排尿・性機能を支配する自律神経（下腹神経・骨盤内臓神経）が直腸近くを走行。QOL維持のため術中の温存が推奨される。
+      </div>
+      <div class="m-box m-box-green">
+        💡 <b>早期下部直腸癌（Rb）</b>：リンパ節郭清を行わない直腸局所切除術が選択されることもある。この場合、肛門括約筋は温存される。
+      </div>
+      <div class="m-box m-box-purple">
+        🤖 2018年4月からロボット支援手術が保険適用となっている。
+      </div>
+    `
   }
 ];
 
