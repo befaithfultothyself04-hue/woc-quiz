@@ -2164,59 +2164,129 @@ const matomeData = [
   {
     id: 31, cat: 'ストーマ',
     title: '直腸癌の手術と術式の選択',
-    summary: '術式は腫瘍の位置で決まる。肛門括約筋が温存できればストーマは不要。できなければ永久ストーマ（Miles手術）となる。',
+    summary: '術式は腫瘍の位置（RS・Ra・Rb・P）で決まる。肛門括約筋が温存できればストーマ不要。Rb・Pは永久ストーマ（Miles手術）となる。',
     html: `
-      <div class="m-section">直腸の部位と腫瘍の位置</div>
-      <table class="m-table">
-        <tr><th>部位</th><th>範囲</th></tr>
-        <tr><td><b>RS</b>（直腸S部）</td><td>岬角〜第2仙椎（S2）下縁</td></tr>
-        <tr><td><b>Ra</b>（上部直腸）</td><td>〜腹膜反転部</td></tr>
-        <tr><td><b>Rb</b>（下部直腸）</td><td>〜恥骨直腸筋付着部上縁</td></tr>
-        <tr><td><b>P</b>（肛門管）</td><td>〜肛門</td></tr>
-      </table>
+      <div class="m-section">📍 腫瘍の位置と適応術式</div>
 
-      <div class="m-section">主な術式の比較</div>
-      <table class="m-table">
-        <tr><th>術式</th><th>特徴</th><th>肛門括約筋</th><th>ストーマ</th><th>適応</th></tr>
-        <tr>
-          <td><b>高位前方切除術</b></td>
-          <td>腹膜反転部より口側で吻合。比較的低侵襲。</td>
-          <td><span class="m-ok">温存</span></td>
-          <td><span class="m-ok">不要</span></td>
-          <td>RS・Ra</td>
-        </tr>
-        <tr>
-          <td><b>低位前方切除術</b></td>
-          <td>腹部からアプローチ。自動吻合器で残った直腸と結腸を吻合する。</td>
-          <td><span class="m-ok">温存</span></td>
-          <td><span class="m-ok">不要</span></td>
-          <td>Ra・Rb</td>
-        </tr>
-        <tr>
-          <td><b>直腸切断術</b><br>（Miles手術）</td>
-          <td>腹部・会陰部からアプローチ。肛門括約筋も含め直腸を切断。肛門は閉鎖され会陰創が残る。</td>
-          <td><span class="m-warn">摘出</span></td>
-          <td><span class="m-warn">永久ストーマ必要</span></td>
-          <td>Rb・P</td>
-        </tr>
-        <tr>
-          <td><b>Hartmann手術</b></td>
-          <td>直腸を切除し口側に人工肛門を造設。肛門側は閉鎖。緊急手術や全身状態不良時に行う。</td>
-          <td>状況による</td>
-          <td>一時的ストーマ</td>
-          <td>緊急・高リスク例</td>
-        </tr>
-      </table>
-
-      <div class="m-section">WOCとして重要なポイント</div>
-      <div class="m-box m-box-blue">
-        📌 <b>基本原則</b>：直腸癌でも腸管切除＋リンパ節郭清が基本。術式は腫瘍の位置（RS・Ra・Rb・P）で決まる。
+      <!-- 部位図（カラーバー） -->
+      <div style="margin:8px 0;border-radius:12px;overflow:hidden;border:2px solid #e2e8f0;font-size:12px">
+        <div style="display:flex;align-items:stretch">
+          <!-- 左：腸管イメージ -->
+          <div style="width:10px;background:linear-gradient(to bottom,#a5d6a7,#fff176,#ffb74d,#ef9a9a);flex-shrink:0"></div>
+          <div style="flex:1">
+            <!-- RS -->
+            <div style="background:#e8f5e9;padding:9px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px dashed #c8e6c9">
+              <div style="font-weight:900;font-size:16px;color:#2e7d32;min-width:28px">RS</div>
+              <div style="flex:1">
+                <div style="font-weight:700;color:#1b5e20">直腸S部</div>
+                <div style="color:#388e3c;font-size:11px">岬角〜第2仙椎（S2）下縁</div>
+              </div>
+              <div style="background:#2e7d32;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-align:center">高位前方<br>切除術</div>
+            </div>
+            <!-- Ra -->
+            <div style="background:#fffde7;padding:9px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px dashed #fff176">
+              <div style="font-weight:900;font-size:16px;color:#f9a825;min-width:28px">Ra</div>
+              <div style="flex:1">
+                <div style="font-weight:700;color:#f57f17">上部直腸</div>
+                <div style="color:#f9a825;font-size:11px">〜腹膜反転部　※ここが境界線</div>
+              </div>
+              <div style="background:#f57f17;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-align:center">高位・低位<br>前方切除術</div>
+            </div>
+            <!-- Rb -->
+            <div style="background:#fff3e0;padding:9px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px dashed #ffcc80">
+              <div style="font-weight:900;font-size:16px;color:#e65100;min-width:28px">Rb</div>
+              <div style="flex:1">
+                <div style="font-weight:700;color:#bf360c">下部直腸</div>
+                <div style="color:#e65100;font-size:11px">〜恥骨直腸筋付着部上縁</div>
+              </div>
+              <div style="background:#e65100;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-align:center">低位前方<br>切除術・Miles</div>
+            </div>
+            <!-- P -->
+            <div style="background:#ffebee;padding:9px 12px;display:flex;align-items:center;gap:10px">
+              <div style="font-weight:900;font-size:16px;color:#c62828;min-width:28px">P</div>
+              <div style="flex:1">
+                <div style="font-weight:700;color:#b71c1c">肛門管</div>
+                <div style="color:#c62828;font-size:11px">〜肛門</div>
+              </div>
+              <div style="background:#b71c1c;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-align:center">Miles手術<br>（永久ストーマ）</div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div class="m-section">🔪 術式の流れ（図解）</div>
+
+      <!-- 高位前方切除術 -->
+      <div style="background:#f0fff4;border:2px solid #c6f6d5;border-radius:12px;padding:12px;margin:8px 0">
+        <div style="font-weight:900;font-size:13px;color:#276749;margin-bottom:8px">① 高位前方切除術（RS・Ra）</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <div style="background:white;border:2px solid #68d391;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;min-width:58px">
+            🔴腫瘍を<br>腸管ごと<br>切除
+          </div>
+          <div style="font-size:18px;color:#48bb78">→</div>
+          <div style="background:white;border:2px solid #68d391;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;min-width:58px">
+            🔗腹膜反転<br>部より口側<br>で吻合
+          </div>
+          <div style="font-size:18px;color:#48bb78">→</div>
+          <div style="background:#276749;color:white;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;font-weight:700;min-width:58px">
+            ✅肛門温存<br>ストーマ<br>不要
+          </div>
+        </div>
+      </div>
+
+      <!-- 低位前方切除術 -->
+      <div style="background:#fffbea;border:2px solid #faf089;border-radius:12px;padding:12px;margin:8px 0">
+        <div style="font-weight:900;font-size:13px;color:#744210;margin-bottom:8px">② 低位前方切除術（Ra・Rb）</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <div style="background:white;border:2px solid #f6e05e;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;min-width:58px">
+            🔴腫瘍を<br>腸管ごと<br>切除
+          </div>
+          <div style="font-size:18px;color:#d69e2e">→</div>
+          <div style="background:white;border:2px solid #f6e05e;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;min-width:58px">
+            🔧自動吻合<br>器で直腸と<br>結腸を吻合
+          </div>
+          <div style="font-size:18px;color:#d69e2e">→</div>
+          <div style="background:#744210;color:white;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;font-weight:700;min-width:58px">
+            ✅肛門温存<br>ストーマ<br>不要
+          </div>
+        </div>
+      </div>
+
+      <!-- Miles手術 -->
+      <div style="background:#fff5f5;border:2px solid #feb2b2;border-radius:12px;padding:12px;margin:8px 0">
+        <div style="font-weight:900;font-size:13px;color:#c53030;margin-bottom:8px">③ 直腸切断術・Miles手術（Rb・P）</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <div style="background:white;border:2px solid #fc8181;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;min-width:58px">
+            🔴腹部・会<br>陰部からア<br>プローチ
+          </div>
+          <div style="font-size:18px;color:#e53e3e">→</div>
+          <div style="background:white;border:2px solid #fc8181;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;min-width:58px">
+            ✂️肛門括約<br>筋ごと直腸<br>を全切断
+          </div>
+          <div style="font-size:18px;color:#e53e3e">→</div>
+          <div style="background:#c53030;color:white;border-radius:8px;padding:7px 10px;font-size:11px;text-align:center;font-weight:700;min-width:58px">
+            ⚠️永久<br>ストーマ<br>造設必要
+          </div>
+        </div>
+        <div style="font-size:11px;color:#742a2a;margin-top:8px;padding:6px 8px;background:#fff;border-radius:6px;border-left:3px solid #fc8181">
+          肛門は閉鎖され会陰創が残る。閉鎖した肛門の代わりに左下腹部に永久ストーマが造設される。
+        </div>
+      </div>
+
+      <!-- Hartmann手術 -->
+      <div style="background:#faf5ff;border:2px solid #d6bcfa;border-radius:12px;padding:12px;margin:8px 0">
+        <div style="font-weight:900;font-size:13px;color:#553c9a;margin-bottom:6px">④ Hartmann手術（緊急・高リスク例）</div>
+        <div style="font-size:12px;color:#44337a;line-height:1.6">
+          直腸を切除し口側に<b>一時的ストーマ</b>を造設。肛門側は閉鎖する。全身状態不良・緊急時に選択。後日ストーマを閉鎖（ストーマ閉鎖術）することもある。
+        </div>
+      </div>
+
+      <div class="m-section">⚠️ WOCとして重要なポイント</div>
       <div class="m-box m-box-yellow">
-        ⚠️ <b>自律神経温存術</b>：排便・排尿・性機能を支配する自律神経（下腹神経・骨盤内臓神経）が直腸近くを走行。QOL維持のため術中の温存が推奨される。
+        <b>自律神経温存術</b>：排便・排尿・性機能を支配する自律神経（下腹神経・骨盤内臓神経）が直腸近くを走行。QOL維持のため術中の温存が推奨される。
       </div>
-      <div class="m-box m-box-green">
-        💡 <b>早期下部直腸癌（Rb）</b>：リンパ節郭清を行わない直腸局所切除術が選択されることもある。この場合、肛門括約筋は温存される。
+      <div class="m-box m-box-blue">
+        <b>早期下部直腸癌（Rb）</b>：リンパ節郭清を行わない直腸局所切除術が選択されることもある。この場合、肛門括約筋は温存される。
       </div>
       <div class="m-box m-box-purple">
         🤖 2018年4月からロボット支援手術が保険適用となっている。
@@ -2224,129 +2294,3 @@ const matomeData = [
     `
   }
 ];
-
-
-
-// ===== まとめ辞書 状態管理 =====
-let matomeCurrentCat = 'すべて';
-let matomeSearchTerm = '';
-
-// ===== まとめカテゴリ一覧取得 =====
-function getMatomeCategories() {
-  const cats = ['すべて'];
-  matomeData.forEach(function(m) {
-    if (!cats.includes(m.cat)) cats.push(m.cat);
-  });
-  return cats;
-}
-
-// カテゴリの色マッピング
-function getCatStyle(cat) {
-  const map = {
-    '皮膚解剖': { bg: '#e6f0ff', color: '#2b6cb0' },
-    '褥瘡':     { bg: '#fff0e6', color: '#c05621' },
-    '創傷治癒': { bg: '#e6ffe6', color: '#276749' },
-    'ストーマ': { bg: '#fce8f3', color: '#97266d' },
-    '排尿障害': { bg: '#f0f0ff', color: '#553c9a' },
-    '排便障害': { bg: '#fffbe6', color: '#744210' },
-    'フットケア': { bg: '#e8f8ee', color: '#22543d' },
-    'スキンケア': { bg: '#fef9e7', color: '#7d6608' },
-    '栄養':     { bg: '#fff5f5', color: '#c53030' },
-    '医療制度': { bg: '#f0f7ff', color: '#1a365d' }
-  };
-  return map[cat] || { bg: '#f0f0f0', color: '#4a5568' };
-}
-
-// ===== まとめタブ レンダリング =====
-function renderMatome() {
-  // カテゴリチップ
-  const catsEl = document.getElementById('matome-cats');
-  const allCats = getMatomeCategories();
-  catsEl.innerHTML = allCats.map(function(c) {
-    const active = c === matomeCurrentCat ? ' active' : '';
-    return '<button class="matome-cat' + active + '" onclick="setMatomeCat(\'' + c + '\')">' + c + '</button>';
-  }).join('');
-
-  filterMatome();
-}
-
-function setMatomeCat(cat) {
-  matomeCurrentCat = cat;
-  renderMatome();
-}
-
-function filterMatome() {
-  const term = (document.getElementById('matome-search-input').value || '').toLowerCase();
-  matomeSearchTerm = term;
-
-  const filtered = matomeData.filter(function(m) {
-    const catMatch = matomeCurrentCat === 'すべて' || m.cat === matomeCurrentCat;
-    if (!catMatch) return false;
-    if (!term) return true;
-    const inTitle = m.title.toLowerCase().includes(term);
-    const inSummary = m.summary.toLowerCase().includes(term);
-    const bodyText = m.html
-      ? m.html.replace(/<[^>]+>/g, ' ').toLowerCase()
-      : (m.detail || []).join(' ').toLowerCase();
-    return inTitle || inSummary || bodyText.includes(term);
-  });
-
-  const countEl = document.getElementById('matome-count');
-  countEl.textContent = filtered.length + ' 件';
-
-  const listEl = document.getElementById('matome-list');
-  if (filtered.length === 0) {
-    listEl.innerHTML = '<div class="matome-empty">🔍 見つかりませんでした<br><span style="font-size:12px">別のキーワードで検索してみてください</span></div>';
-    return;
-  }
-
-  listEl.innerHTML = filtered.map(function(m) {
-    const st = getCatStyle(m.cat);
-    // html プロパティがあればそのまま使用、なければリスト形式
-    const detailContent = m.html
-      ? '<div class="matome-detail-inner">' + m.html + '</div>'
-      : '<div class="matome-detail-inner">' + (m.detail || []).map(function(d) {
-          return '<div class="matome-detail-item">' + d + '</div>';
-        }).join('') + '</div>';
-    return [
-      '<div class="matome-card" id="mc-' + m.id + '" style="border-top:3px solid ' + st.color + '">',
-      '  <div class="matome-card-head" onclick="toggleMatomeCard(' + m.id + ')">',
-      '    <div style="flex:1">',
-      '      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">',
-      '        <span class="matome-badge" style="background:' + st.bg + ';color:' + st.color + '">' + m.cat + '</span>',
-      '      </div>',
-      '      <div class="matome-card-title">' + m.title + '</div>',
-      '      <div class="matome-card-summary">' + m.summary + '</div>',
-      '    </div>',
-      '    <span class="matome-card-arrow" id="arrow-' + m.id + '">▼</span>',
-      '  </div>',
-      '  <div class="matome-card-detail" id="detail-' + m.id + '">',
-      detailContent,
-      '  </div>',
-      '</div>'
-    ].join('');
-  }).join('');
-}
-
-function toggleMatomeCard(id) {
-  const card = document.getElementById('mc-' + id);
-  const detail = document.getElementById('detail-' + id);
-  const arrow = document.getElementById('arrow-' + id);
-  if (!card || !detail) return;
-  const isOpen = card.classList.contains('open');
-  if (isOpen) {
-    card.classList.remove('open');
-    detail.style.display = 'none';
-    if (arrow) arrow.style.transform = '';
-  } else {
-    card.classList.add('open');
-    detail.style.display = 'block';
-    if (arrow) arrow.style.transform = 'rotate(180deg)';
-  }
-}
-
-// ===== 起動 =====
-try { init(); } catch(e) { console.error('init error:', e); }
-</script>
-</body>
-</html>
