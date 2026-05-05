@@ -2294,3 +2294,124 @@ const matomeData = [
     `
   }
 ];
+
+// ===== まとめ辞書 状態管理 =====
+let matomeCurrentCat = 'すべて';
+let matomeSearchTerm = '';
+
+// ===== まとめカテゴリ一覧取得 =====
+function getMatomeCategories() {
+  const cats = ['すべて'];
+  matomeData.forEach(function(m) {
+    if (!cats.includes(m.cat)) cats.push(m.cat);
+  });
+  return cats;
+}
+
+// カテゴリの色マッピング
+function getCatStyle(cat) {
+  const map = {
+    '皮膚解剖': { bg: '#e6f0ff', color: '#2b6cb0' },
+    '褥瘡':     { bg: '#fff0e6', color: '#c05621' },
+    '創傷治癒': { bg: '#e6ffe6', color: '#276749' },
+    'ストーマ': { bg: '#fce8f3', color: '#97266d' },
+    '排尿障害': { bg: '#f0f0ff', color: '#553c9a' },
+    '排便障害': { bg: '#fffbe6', color: '#744210' },
+    'フットケア': { bg: '#e8f8ee', color: '#22543d' },
+    'スキンケア': { bg: '#fef9e7', color: '#7d6608' },
+    '栄養':     { bg: '#fff5f5', color: '#c53030' },
+    '医療制度': { bg: '#f0f7ff', color: '#1a365d' }
+  };
+  return map[cat] || { bg: '#f0f0f0', color: '#4a5568' };
+}
+
+// ===== まとめタブ レンダリング =====
+function renderMatome() {
+  const catsEl = document.getElementById('matome-cats');
+  const allCats = getMatomeCategories();
+  catsEl.innerHTML = allCats.map(function(c) {
+    const active = c === matomeCurrentCat ? ' active' : '';
+    return '<button class="matome-cat' + active + '" onclick="setMatomeCat(\'' + c + '\')">' + c + '</button>';
+  }).join('');
+  filterMatome();
+}
+
+function setMatomeCat(cat) {
+  matomeCurrentCat = cat;
+  renderMatome();
+}
+
+function filterMatome() {
+  const term = (document.getElementById('matome-search-input').value || '').toLowerCase();
+  matomeSearchTerm = term;
+
+  const filtered = matomeData.filter(function(m) {
+    const catMatch = matomeCurrentCat === 'すべて' || m.cat === matomeCurrentCat;
+    if (!catMatch) return false;
+    if (!term) return true;
+    const inTitle = m.title.toLowerCase().includes(term);
+    const inSummary = m.summary.toLowerCase().includes(term);
+    const bodyText = m.html
+      ? m.html.replace(/<[^>]+>/g, ' ').toLowerCase()
+      : (m.detail || []).join(' ').toLowerCase();
+    return inTitle || inSummary || bodyText.includes(term);
+  });
+
+  const countEl = document.getElementById('matome-count');
+  countEl.textContent = filtered.length + ' 件';
+
+  const listEl = document.getElementById('matome-list');
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="matome-empty">🔍 見つかりませんでした<br><span style="font-size:12px">別のキーワードで検索してみてください</span></div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(function(m) {
+    const st = getCatStyle(m.cat);
+    const detailContent = m.html
+      ? '<div class="matome-detail-inner">' + m.html + '</div>'
+      : '<div class="matome-detail-inner">' + (m.detail || []).map(function(d) {
+          return '<div class="matome-detail-item">' + d + '</div>';
+        }).join('') + '</div>';
+    return [
+      '<div class="matome-card" id="mc-' + m.id + '" style="border-top:3px solid ' + st.color + '">',
+      '  <div class="matome-card-head" onclick="toggleMatomeCard(' + m.id + ')">',
+      '    <div style="flex:1">',
+      '      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">',
+      '        <span class="matome-badge" style="background:' + st.bg + ';color:' + st.color + '">' + m.cat + '</span>',
+      '      </div>',
+      '      <div class="matome-card-title">' + m.title + '</div>',
+      '      <div class="matome-card-summary">' + m.summary + '</div>',
+      '    </div>',
+      '    <span class="matome-card-arrow" id="arrow-' + m.id + '">▼</span>',
+      '  </div>',
+      '  <div class="matome-card-detail" id="detail-' + m.id + '">',
+      detailContent,
+      '  </div>',
+      '</div>'
+    ].join('');
+  }).join('');
+}
+
+function toggleMatomeCard(id) {
+  const card = document.getElementById('mc-' + id);
+  const detail = document.getElementById('detail-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  if (!card || !detail) return;
+  const isOpen = card.classList.contains('open');
+  if (isOpen) {
+    card.classList.remove('open');
+    detail.style.display = 'none';
+    if (arrow) arrow.style.transform = '';
+  } else {
+    card.classList.add('open');
+    detail.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  }
+}
+
+// ===== 起動 =====
+try { init(); } catch(e) { console.error('init error:', e); }
+</script>
+</body>
+</html>
