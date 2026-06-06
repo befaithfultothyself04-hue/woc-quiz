@@ -213,13 +213,23 @@
 <div class="screen" id="screen-home" style="display:block">
   <div style="height:16px"></div>
 
-  <!-- 途中再開カード -->
-  <div class="resume-card" id="resume-card" style="display:none">
-    <h3>⏸ 前回の続きがあります</h3>
-    <p id="resume-info">読み込み中...</p>
+  <!-- 途中再開カード（過去問） -->
+  <div class="resume-card" id="resume-card-kakomon" style="display:none">
+    <h3>⏸ 過去問の続きがあります</h3>
+    <p id="resume-info-kakomon">読み込み中...</p>
     <div class="resume-btns">
-      <button class="resume-btn" onclick="resumeQuiz()">続きから再開する ▶</button>
-      <button class="resume-discard-btn" onclick="clearResume()">破棄</button>
+      <button class="resume-btn" onclick="resumeQuiz('woc_resume_kakomon')">続きから再開する ▶</button>
+      <button class="resume-discard-btn" onclick="clearResume('woc_resume_kakomon')">破棄</button>
+    </div>
+  </div>
+
+  <!-- 途中再開カード（予想問題） -->
+  <div class="resume-card" id="resume-card-yosou" style="display:none" style="background:linear-gradient(135deg,#f0fff4,#c6f6d5);border-color:#68d391">
+    <h3>⏸ 予想問題の続きがあります</h3>
+    <p id="resume-info-yosou">読み込み中...</p>
+    <div class="resume-btns">
+      <button class="resume-btn" onclick="resumeQuiz('woc_resume_yosou')" style="background:#276749">続きから再開する ▶</button>
+      <button class="resume-discard-btn" onclick="clearResume('woc_resume_yosou')">破棄</button>
     </div>
   </div>
 
@@ -832,11 +842,18 @@ function safeGetLS(key, fallback) {
 
 // ===== アプリ状態 =====
 // ===== 途中再開 =====
+// キューが予想問題のみかどうかでキーを決定
+function getResumeKey() {
+  var allYosou = state.quizQueue.length > 0 && state.quizQueue.every(function(q) { return q.school === '予想問題'; });
+  return allYosou ? 'woc_resume_yosou' : 'woc_resume_kakomon';
+}
+
 function saveResume(indexOverride) {
   try {
     if (state.quizQueue.length === 0) return;
     var saveIndex = (indexOverride !== undefined) ? indexOverride : state.currentIndex;
-    if (saveIndex >= state.quizQueue.length) return; // 全問終了後は保存しない
+    if (saveIndex >= state.quizQueue.length) return;
+    var key = getResumeKey();
     var data = {
       queueIds: state.quizQueue.map(function(q) { return q.id; }),
       currentIndex: saveIndex,
@@ -846,26 +863,42 @@ function saveResume(indexOverride) {
       mode: state.currentMode,
       savedAt: Date.now()
     };
-    localStorage.setItem('woc_resume', JSON.stringify(data));
+    localStorage.setItem(key, JSON.stringify(data));
+    // 古いキーは削除
+    try { localStorage.removeItem('woc_resume'); } catch(e) {}
   } catch(e) {}
 }
 
-function clearResume() {
-  try { localStorage.removeItem('woc_resume'); } catch(e) {}
-  var card = document.getElementById('resume-card');
-  if (card) card.style.display = 'none';
+function clearResume(key) {
+  if (key) {
+    try { localStorage.removeItem(key); } catch(e) {}
+    var suffix = key === 'woc_resume_yosou' ? '-yosou' : '-kakomon';
+    var card = document.getElementById('resume-card' + suffix);
+    if (card) card.style.display = 'none';
+  } else {
+    ['woc_resume','woc_resume_kakomon','woc_resume_yosou'].forEach(function(k) {
+      try { localStorage.removeItem(k); } catch(e) {}
+    });
+    var c1 = document.getElementById('resume-card-kakomon');
+    var c2 = document.getElementById('resume-card-yosou');
+    if (c1) c1.style.display = 'none';
+    if (c2) c2.style.display = 'none';
+  }
 }
 
-function resumeQuiz() {
+function resumeQuiz(key) {
   try {
-    var data = safeGetLS('woc_resume', null);
-    if (!data || !data.queueIds || !Array.isArray(data.queueIds)) { clearResume(); return; }
-    // ID は数値・文字列どちらでも一致するよう Number() で変換
+    // 旧キーの移行対応
+    if (!key) key = 'woc_resume_kakomon';
+    var data = safeGetLS(key, null);
+    // 旧形式のフォールバック
+    if (!data) data = safeGetLS('woc_resume', null);
+    if (!data || !data.queueIds || !Array.isArray(data.queueIds)) { clearResume(key); return; }
     var queue = data.queueIds.map(function(id) {
       var numId = Number(id);
       return questions.find(function(q) { return q.id === numId; });
     }).filter(Boolean);
-    if (queue.length === 0) { clearResume(); return; }
+    if (queue.length === 0) { clearResume(key); return; }
     var resumeIndex = Math.min(Number(data.currentIndex) || 0, queue.length - 1);
     state.quizQueue = queue;
     state.currentIndex = resumeIndex;
@@ -880,26 +913,34 @@ function resumeQuiz() {
     switchScreen('screen-quiz', 1);
     loadQuestion();
   } catch(e) {
-    clearResume();
+    clearResume(key);
     alert('再開に失敗しました。最初から始めます。\nエラー: ' + (e && e.message ? e.message : String(e)));
   }
 }
 
+function showResumeCard(key, cardId, infoId) {
+  var data = safeGetLS(key, null);
+  if (!data || !data.queueIds) return;
+  var remaining = data.queueIds.length - data.currentIndex;
+  if (remaining <= 0) { clearResume(key); return; }
+  var date = new Date(data.savedAt);
+  var h = date.getHours(), m = String(date.getMinutes()).padStart(2, '0');
+  var info = data.currentIndex + '問完了 / 残り' + remaining + '問（' + h + ':' + m + '中断）';
+  var card = document.getElementById(cardId);
+  var infoEl = document.getElementById(infoId);
+  if (card && infoEl) { infoEl.textContent = info; card.style.display = 'block'; }
+}
+
 function checkResume() {
   try {
-    var data = safeGetLS('woc_resume', null);
-    if (!data || !data.queueIds) return;
-    var remaining = data.queueIds.length - data.currentIndex;
-    if (remaining <= 0) { clearResume(); return; }
-    var date = new Date(data.savedAt);
-    var h = date.getHours(), m = String(date.getMinutes()).padStart(2, '0');
-    var info = data.currentIndex + '問完了 / 残り' + remaining + '問（' + h + ':' + m + '中断）';
-    var card = document.getElementById('resume-card');
-    var infoEl = document.getElementById('resume-info');
-    if (card && infoEl) {
-      infoEl.textContent = info;
-      card.style.display = 'block';
+    // 旧キーがあれば過去問として移行
+    var old = safeGetLS('woc_resume', null);
+    if (old) {
+      localStorage.setItem('woc_resume_kakomon', JSON.stringify(old));
+      localStorage.removeItem('woc_resume');
     }
+    showResumeCard('woc_resume_kakomon', 'resume-card-kakomon', 'resume-info-kakomon');
+    showResumeCard('woc_resume_yosou', 'resume-card-yosou', 'resume-info-yosou');
   } catch(e) {}
 }
 
@@ -1003,7 +1044,7 @@ function startNewQuestions() {
     state.quizQueue = pool;
     state.currentIndex = 0;
     state.sessionResults = [];
-    clearResume();
+    clearResume('woc_resume_yosou');
     switchScreen('screen-quiz', 1);
     loadQuestion();
   } catch(e) {
@@ -1071,7 +1112,7 @@ function startQuiz() {
     state.quizQueue = pool;
     state.currentIndex = 0;
     state.sessionResults = [];
-    clearResume();
+    clearResume(getResumeKey());
     switchScreen('screen-quiz', 1);
     loadQuestion();
   } catch(e) {
@@ -1206,7 +1247,7 @@ function toggleBookmark() {
 
 // ===== 結果表示 =====
 function showResult() {
-  clearResume();
+  clearResume(getResumeKey());
   document.querySelectorAll('.screen').forEach(function(s) { s.style.display = 'none'; });
   var resultScreen = document.getElementById('screen-result');
   if (resultScreen) resultScreen.style.display = 'block';
@@ -1331,7 +1372,7 @@ function startSingleQuestion(id) {
     state.quizQueue = [q];
     state.currentIndex = 0;
     state.sessionResults = [];
-    clearResume();
+    clearResume(getResumeKey());
     switchScreen('screen-quiz', 1);
     loadQuestion();
   } catch(e) {
